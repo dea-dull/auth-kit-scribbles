@@ -15,50 +15,43 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value:
-        ImportValue: !Sub "scan-queue-arn-${Environment}"
+      Value: !ImportValue "scan-queue-arn-${Environment}"
 
   ScanQueueUrlParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value:
-        ImportValue: !Sub "scan-queue-url-${Environment}"
+      Value: !ImportValue "scan-queue-url-${Environment}"
 
   DriveBucketNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value:
-        ImportValue: !Sub "drive-bucket-name-${Environment}"
+      Value: !ImportValue "drive-bucket-name-${Environment}"
 
   DriveUnscannedBucketNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value:
-        ImportValue: !Sub "drive-unscanned-bucket-name-${Environment}"
+      Value: !ImportValue "drive-unscanned-bucket-name-${Environment}"
 
   QuarantinedBucketNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value:
-        ImportValue: !Sub "drive-quarantined-bucket-name-${Environment}"
+      Value: !ImportValue "drive-quarantined-bucket-name-${Environment}"
 
   ScanTableNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value:
-        ImportValue: !Sub "scan-table-name-${Environment}"
+      Value: !ImportValue "scan-table-name-${Environment}"
 
   DriveTableNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value:
-        ImportValue: !Sub "drive-table-name-${Environment}"
+      Value: !ImportValue "drive-table-name-${Environment}"
 
   ###########################################################################
   # SCAN QUEUE PROCESSOR
@@ -73,20 +66,14 @@ Resources:
       Runtime: nodejs18.x
       Timeout: 30
       Layers:
-        -
-          ImportValue: !Sub "aws-sdk-v3-layer-${Environment}"
+        - !ImportValue "aws-sdk-v3-layer-${Environment}"
       Environment:
         Variables:
-          SCAN_TABLE:
-            ImportValue: !Sub "scan-table-name-${Environment}"
-          DRIVE_TABLE:
-            ImportValue: !Sub "drive-table-name-${Environment}"
-          DRIVE_BUCKET:
-            ImportValue: !Sub "drive-bucket-name-${Environment}"
-          DRIVE_UNSCANNED_BUCKET:
-            ImportValue: !Sub "drive-unscanned-bucket-name-${Environment}"
-          QUARANTINE_BUCKET:
-            ImportValue: !Sub "drive-quarantined-bucket-name-${Environment}"
+          SCAN_TABLE: !ImportValue "scan-table-name-${Environment}"
+          DRIVE_TABLE: !ImportValue "drive-table-name-${Environment}"
+          DRIVE_BUCKET: !ImportValue "drive-bucket-name-${Environment}"
+          DRIVE_UNSCANNED_BUCKET: !ImportValue "drive-unscanned-bucket-name-${Environment}"
+          QUARANTINE_BUCKET: !ImportValue "drive-quarantined-bucket-name-${Environment}"
       Policies:
         - Statement:
             - Effect: Allow
@@ -112,8 +99,7 @@ Resources:
         ScanQueueEvent:
           Type: SQS
           Properties:
-            Queue:
-              ImportValue: !Sub "scan-queue-arn-${Environment}"
+            Queue: !ImportValue "scan-queue-arn-${Environment}"
             BatchSize: 1
 
   ###########################################################################
@@ -129,14 +115,11 @@ Resources:
 #       Runtime: nodejs18.x
 #       Timeout: 20
 #       Layers:
-#         -
-#           ImportValue: !Sub "aws-sdk-v3-layer-${Environment}"
+#         - !ImportValue "aws-sdk-v3-layer-${Environment}"
 #       Environment:
 #         Variables:
-#           DRIVE_TABLE:
-#             ImportValue: !Sub "drive-table-name-${Environment}"
-#           QUARANTINE_BUCKET:
-#             ImportValue: !Sub "drive-quarantined-bucket-name-${Environment}"
+#           DRIVE_TABLE: !ImportValue "drive-table-name-${Environment}"
+#           QUARANTINE_BUCKET: !ImportValue "drive-quarantined-bucket-name-${Environment}"
 #       Policies:
 #         - Statement:
 #             - Effect: Allow
@@ -162,12 +145,10 @@ Resources:
       Runtime: nodejs18.x
       Timeout: 20
       Layers:
-        -
-          ImportValue: !Sub "aws-sdk-v3-layer-${Environment}"
+        - !ImportValue "aws-sdk-v3-layer-${Environment}"
       Environment:
         Variables:
-          DRIVE_TABLE:
-            ImportValue: !Sub "drive-table-name-${Environment}"
+          DRIVE_TABLE: !ImportValue "drive-table-name-${Environment}"
       Policies:
         - Statement:
             - Effect: Allow

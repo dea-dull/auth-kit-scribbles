@@ -12,7 +12,7 @@ Resources:
     Properties:
       LayerName: !Sub aws-sdk-v3-${Environment}
       Description: AWS SDK v3 for DynamoDB operations
-      ContentUri: ../../layers/aws-sdk-v3-layer/
+      ContentUri: ../../../../layers/aws-sdk-v3-layer/
       CompatibleRuntimes:
         - nodejs18.x
       RetentionPolicy: Retain

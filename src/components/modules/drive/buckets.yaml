@@ -7,96 +7,91 @@ Parameters:
 
 Resources:
 
-DriveUnscannedBucket:
-  Type: AWS::S3::Bucket
-  Properties:
-    BucketName: !Sub drive-unscanned-${Environment}-${AWS::AccountId}
+  DriveUnscannedBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub drive-unscanned-${Environment}-${AWS::AccountId}
 
-    LifecycleConfiguration:
-      Rules:
-        - Id: CleanupFailedUploads
-          Status: Enabled
-          Prefix: ''
-          ExpirationInDays: 1
-          AbortIncompleteMultipartUpload:
-            DaysAfterInitiation: 1
+      LifecycleConfiguration:
+        Rules:
+          - Id: CleanupFailedUploads
+            Status: Enabled
+            Prefix: ''
+            ExpirationInDays: 1
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
 
-    NotificationConfiguration:
-      QueueConfigurations:
-        - Event: s3:ObjectCreated:*
-          Queue:
-            ImportValue: !Sub "scan-queue-arn-${Environment}"
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Event: s3:ObjectCreated:*
+            Queue: !ImportValue "scan-queue-arn-${Environment}"
 
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
-    PublicAccessBlockConfiguration:
-      BlockPublicAcls: true
-      BlockPublicPolicy: true
-      IgnorePublicAcls: true
-      RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
-    BucketEncryption:
-      ServerSideEncryptionConfiguration:
-        - ServerSideEncryptionByDefault:
-            SSEAlgorithm: AES256
+  DriveBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub drive-${Environment}-${AWS::AccountId}
 
+      VersioningConfiguration:
+        Status: Enabled
 
-DriveBucket:
-  Type: AWS::S3::Bucket
-  Properties:
-    BucketName: !Sub drive-${Environment}-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
-    VersioningConfiguration:
-      Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
-    PublicAccessBlockConfiguration:
-      BlockPublicAcls: true
-      BlockPublicPolicy: true
-      IgnorePublicAcls: true
-      RestrictPublicBuckets: true
+  DriveQuarantinedBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub drive-quarantined-${Environment}-${AWS::AccountId}
 
-    BucketEncryption:
-      ServerSideEncryptionConfiguration:
-        - ServerSideEncryptionByDefault:
-            SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: QuarantineCleanup
+            Status: Enabled
+            Prefix: ''
+            ExpirationInDays: 5
 
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
-DriveQuarantinedBucket:
-  Type: AWS::S3::Bucket
-  Properties:
-    BucketName: !Sub drive-quarantined-${Environment}-${AWS::AccountId}
-
-    LifecycleConfiguration:
-      Rules:
-        - Id: QuarantineCleanup
-          Status: Enabled
-          Prefix: ''
-          ExpirationInDays: 5
-
-    PublicAccessBlockConfiguration:
-      BlockPublicAcls: true
-      BlockPublicPolicy: true
-      IgnorePublicAcls: true
-      RestrictPublicBuckets: true
-
-    BucketEncryption:
-      ServerSideEncryptionConfiguration:
-        - ServerSideEncryptionByDefault:
-            SSEAlgorithm: AES256
-
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
 Outputs:
 
   DriveUnscannedBucketName:
     Value: !Ref DriveUnscannedBucket
     Export:
-      Name: !Sub drive-unscanned-bucket-name-${Environment}
+      Name: !Sub "drive-unscanned-bucket-name-${Environment}"
 
   DriveBucketName:
     Value: !Ref DriveBucket
     Export:
-      Name: !Sub drive-bucket-name-${Environment}
+      Name: !Sub "drive-bucket-name-${Environment}"
 
   DriveQuarantinedBucketName:
     Value: !Ref DriveQuarantinedBucket
     Export:
-      Name: !Sub drive-quarantined-bucket-name-${Environment}
+      Name: !Sub "drive-quarantined-bucket-name-${Environment}"
