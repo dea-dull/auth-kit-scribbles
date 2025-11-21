@@ -1,5 +1,6 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand, BatchWriteCommand } from "@aws-sdk/lib-dynamodb";
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, ScanCommand, BatchWriteCommand  } = require("@aws-sdk/lib-dynamodb");
+
 
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
@@ -10,7 +11,7 @@ const RETRY_DELAY_MS = 1000; // 1 second
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const handler = async () => {
+exports.handler = async () => {
   const currentDate = new Date().toISOString();
 
   try {

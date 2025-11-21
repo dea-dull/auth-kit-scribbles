@@ -1,0 +1,18 @@
+- create the dev stage manually, as it coundn't be created using yaml
+- add the invokeurl to the front end 
+- Add CORS for all api gateway paths 
+- add the method DELETE to the allow method in the OPTIONS {mock} section when doing CORS
+
+
+
+
+
+
+
+
+
+
+
+
+
+todo

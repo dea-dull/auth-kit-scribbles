@@ -1,156 +1,148 @@
-# template.yml  dev api stage didnt create so will need to be created manually
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
+Description: Modular SAM template for Drive & Notes with outputs
 
 Parameters:
-  Stage:
+  Environment:
     Type: String
     Default: dev
 
 Resources:
 
-  AwsSdkV3Layer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: !Sub aws-sdk-v3-${Stage}
-      Description: AWS SDK v3 for DynamoDB operations
-      ContentUri: ../../layers/aws-sdk-v3-layer/  # Adjusted path for your structure
-      CompatibleRuntimes:
-        - nodejs18.x
-      RetentionPolicy: Retain
+  ###########################################################################
+  # SHARED LAYERS
+  ###########################################################################
 
-  NotesTable:
-    Type: AWS::DynamoDB::Table
+  SharedLayers:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      TableName: !Sub Starage-App-Notes-${Stage}
-      AttributeDefinitions:
-        - AttributeName: userId
-          AttributeType: S
-        - AttributeName: noteId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: userId
-          KeyType: HASH
-        - AttributeName: noteId
-          KeyType: RANGE
-      BillingMode: PAY_PER_REQUEST
+      TemplateURL: modules/shared/layers.yaml
+      Parameters:
+        Environment: !Ref Environment
 
-  SyncNoteFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub notes-sync-${Stage}
-      CodeUri: notes/lambda/sync-notes/
-      Handler: index.handler
-      Runtime: nodejs18.x
-      Layers:
-        - !Ref AwsSdkV3Layer  # ← Attach layer here
-      Environment:
-        Variables:
-          NOTES_TABLE: !Ref NotesTable
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NotesTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /notes/sync
-            Method: post
+  ###########################################################################
+  # DRIVE MODULES
+  ###########################################################################
 
-  GetNotesFunction:
-    Type: AWS::Serverless::Function
+  DriveBuckets:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      FunctionName: !Sub notes-get-${Stage}
-      CodeUri: notes/lambda/get-notes/
-      Handler: index.handler
-      Runtime: nodejs18.x
-      Layers:
-        - !Ref AwsSdkV3Layer  # ← Attach layer here
-      Environment:
-        Variables:
-          NOTES_TABLE: !Ref NotesTable
-      Policies:
-        - DynamoDBReadPolicy:
-            TableName: !Ref NotesTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /notes
-            Method: get
+      TemplateURL: modules/drive/buckets.yaml
+      Parameters:
+        Environment: !Ref Environment
 
-  DeleteNoteFunction:
-    Type: AWS::Serverless::Function
+  DriveDynamoDB:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      FunctionName: !Sub notes-delete-${Stage}
-      CodeUri: notes/lambda/delete-notes/
-      Handler: index.handler
-      Runtime: nodejs18.x
-      Layers:
-        - !Ref AwsSdkV3Layer  # ← Attach layer here
-      Environment:
-        Variables:
-          NOTES_TABLE: !Ref NotesTable
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NotesTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /notes/{id}
-            Method: delete
+      TemplateURL: modules/drive/dynamodb.yaml
+      Parameters:
+        Environment: !Ref Environment
 
-  RestoreNoteFunction:
-    Type: AWS::Serverless::Function
+  DriveLambdas:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      FunctionName: !Sub notes-restore-${Stage}
-      CodeUri: notes/lambda/restore-notes/
-      Handler: index.handler
-      Runtime: nodejs18.x
-      Layers:
-        - !Ref AwsSdkV3Layer  # ← Attach layer here
-      Environment:
-        Variables:
-          NOTES_TABLE: !Ref NotesTable
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NotesTable
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /notes/{id}/restore
-            Method: post
+      TemplateURL: modules/drive/lambdas.yaml
+      Parameters:
+        Environment: !Ref Environment
 
-  CleanupNotesFunction:
-    Type: AWS::Serverless::Function
+  DriveBackground:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      FunctionName: !Sub notes-cleanup-${Stage}
-      CodeUri: notes/lambda/cleanup-notes/
-      Handler: index.handler
-      Runtime: nodejs18.x
-      Layers:
-        - !Ref AwsSdkV3Layer  # ← Attach layer here
-      Environment:
-        Variables:
-          NOTES_TABLE: !Ref NotesTable
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref NotesTable
-      Events:
-        DailyCleanup:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 day)
+      TemplateURL: modules/drive/background.yaml
+      Parameters:
+        Environment: !Ref Environment
+
+  DriveQueue:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: modules/drive/queue.yaml
+      Parameters:
+        Environment: !Ref Environment
+
+  ###########################################################################
+  # NOTES MODULE
+  ###########################################################################
+
+  NotesResources:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: modules/notes/notes.yaml
+      Parameters:
+        Environment: !Ref Environment
 
 Outputs:
-  ApiUrl:
-    Description: "API Gateway endpoint URL"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/"
-    
-  NotesTableName:
-    Description: "Notes DynamoDB table name"
-    Value: !Ref NotesTable
 
-    
+  ###########################################################################
+  # DRIVE BUCKETS
+  ###########################################################################
+
+  DriveBucketName:
+    Description: Name of the Drive bucket
+    Value: !ImportValue
+      Fn::Sub: drive-bucket-name-${Environment}
+
+  DriveUnscannedBucketName:
+    Description: Name of the Drive unscanned bucket
+    Value: !ImportValue
+      Fn::Sub: drive-unscanned-bucket-name-${Environment}
+
+  DriveQuarantinedBucketName:
+    Description: Name of the Drive quarantined bucket
+    Value: !ImportValue
+      Fn::Sub: drive-quarantined-bucket-name-${Environment}
+
+  ###########################################################################
+  # DRIVE TABLES
+  ###########################################################################
+
+  DriveTableName:
+    Description: Name of the Drive DynamoDB table
+    Value: !ImportValue
+      Fn::Sub: drive-table-name-${Environment}
+
+  ScanTableName:
+    Description: Name of the Scan DynamoDB table
+    Value: !ImportValue
+      Fn::Sub: scan-table-name-${Environment}
+
+  UserSettingsTableName:
+    Description: DynamoDB table for user settings
+    Value: !ImportValue
+      Fn::Sub: user-settings-table-name-${Environment}
+
+  ShareTableName:
+    Description: DynamoDB table for share records
+    Value: !ImportValue
+      Fn::Sub: share-table-name-${Environment}
+
+  ###########################################################################
+  # NOTES TABLE
+  ###########################################################################
+
+  NotesTableName:
+    Description: DynamoDB table for notes
+    Value: !ImportValue
+      Fn::Sub: notes-table-name-${Environment}
+
+  ###########################################################################
+  # SQS
+  ###########################################################################
+
+  ScanQueueUrl:
+    Description: URL of SQS queue used for scanning
+    Value: !ImportValue
+      Fn::Sub: scan-queue-url-${Environment}
+
+  ScanQueueArn:
+    Description: ARN of SQS queue used for scanning
+    Value: !ImportValue
+      Fn::Sub: scan-queue-arn-${Environment}
+
+  ###########################################################################
+  # SHARED LAYER
+  ###########################################################################
+
+  AwsSdkV3LayerArn:
+    Description: ARN of the AWS SDK v3 Layer
+    Value: !ImportValue
+      Fn::Sub: aws-sdk-v3-layer-${Environment}

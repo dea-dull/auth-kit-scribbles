@@ -10,14 +10,16 @@ body.modal-open {
 
 /* Overlay: strong blur, dark, solid background */
 .overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
+   display: flex;
+   flex-direction: row;
+  align-items: center;
+  justify-content: center;
   background: rgba(0, 0, 0, 0.85); /* slightly less than 0.95 for some see-through */
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px); /* for Safari */
-  z-index: 999;
+  z-index: 20;
 }
 
 /* Modal: centered, readable, responsive */

@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  Environment:
+    Type: String
+
+Resources:
+
+  AwsSdkV3Layer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub aws-sdk-v3-${Environment}
+      Description: AWS SDK v3 for DynamoDB operations
+      ContentUri: ../../layers/aws-sdk-v3-layer/
+      CompatibleRuntimes:
+        - nodejs18.x
+      RetentionPolicy: Retain
+
+Outputs:
+  AwsSdkV3LayerArn:
+    Value: !Ref AwsSdkV3Layer
+    Export:
+      Name: !Sub aws-sdk-v3-layer-${Environment}

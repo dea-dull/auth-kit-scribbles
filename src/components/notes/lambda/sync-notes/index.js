@@ -1,5 +1,8 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+
+
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient,  PutCommand } = require("@aws-sdk/lib-dynamodb");
+
 
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client); // Add DocumentClient
@@ -10,7 +13,7 @@ const headers = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-export const handler = async (event) => {
+exports.handler = async (event) => {
   try {
     // Handle preflight
     if (event.httpMethod === "OPTIONS") {

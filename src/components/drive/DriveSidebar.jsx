@@ -7,8 +7,8 @@ import "./drive.css";
 
 const driveNav = [
   { label: "Home", icon: IconHome, to: "/drive/home" },
-  { label: "Recent", icon: IconClock, to: "/drive/recent" },
-  { label: "Private files", icon: IconLock, to: "/drive/private" },
+  { label: "Main Cloud", icon: IconClock, to: "/drive/main" },
+  { label: "Private Cloud", icon: IconLock, to: "/drive/private" },
   { label: "Shared", icon: IconUsers, to: "/drive/shared" },
   { label: "Tagged", icon: IconTag, to: "/drive/tagged" },
   { label: "Trash", icon: IconTrash, to: "/drive/trash" },

@@ -3,10 +3,10 @@ import DriveSidebar from "./DriveSidebar";
 import "./drive.css";
 
 export default function DriveLayout() {
-  // If at /drive, redirect to /drive/recent
+  // If at /drive, redirect to /drive/main
   const location = useLocation();
   if (location.pathname === "/drive" || location.pathname === "/drive/") {
-    return <Navigate to="/drive/recent" replace />;
+    return <Navigate to="/drive/main" replace />;
   }
 
   return (

@@ -104,7 +104,7 @@ export default function DrivePrivate() {
             setShowOtp(false);
             setShowAuthError(true);
             setTimeout(() => {
-              navigate("/drive/recent"); // redirect after 1.5s (or change to any default)
+              navigate("/drive/main"); // redirect after 1.5s (or change to any default)
             }, 1500);
           }}
         />

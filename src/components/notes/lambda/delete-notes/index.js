@@ -1,16 +1,16 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'OPTIONS,DELETE,POST',
+  'Access-Control-Allow-Methods': 'OPTIONS,DELETE',
   'Access-Control-Allow-Headers': 'Content-Type'
 };
 
-export const handler = async (event) => {
+exports.handler = async (event) => {
   try {
     // Handle preflight
     if (event.httpMethod === 'OPTIONS') {

@@ -1,0 +1,25 @@
+======================
+DRIVE FEATURE ACCESS
+======================
+
+Free for ALL users:
+ - Upload files
+ - Download files
+ - List folders/files
+ - List recent files
+ - Trash / restore files
+ - Empty trash
+ - Get metadata
+ - Move / rename files
+
+Plan-Controlled:
+ - Storage quota limits
+ - Max upload file size
+ - Monthly share link quota
+ - Max link expiry time
+ - Version history depth
+ - Shared folders / collaboration count
+ - Priority processing (thumbnails, indexing)
+ - Device connection limits
+
+Trash is **never** plan-restricted.
