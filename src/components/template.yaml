@@ -70,6 +70,7 @@ Resources:
       Parameters:
         Environment: !Ref Environment
 
+
 Outputs:
 
   ###########################################################################
@@ -78,18 +79,18 @@ Outputs:
 
   DriveBucketName:
     Description: Name of the Drive bucket
-    Value: !ImportValue
-      Fn::Sub: drive-bucket-name-${Environment}
+    Value:
+      ImportValue: !Sub "drive-bucket-name-${Environment}"
 
   DriveUnscannedBucketName:
     Description: Name of the Drive unscanned bucket
-    Value: !ImportValue
-      Fn::Sub: drive-unscanned-bucket-name-${Environment}
+    Value:
+      ImportValue: !Sub "drive-unscanned-bucket-name-${Environment}"
 
   DriveQuarantinedBucketName:
     Description: Name of the Drive quarantined bucket
-    Value: !ImportValue
-      Fn::Sub: drive-quarantined-bucket-name-${Environment}
+    Value:
+      ImportValue: !Sub "drive-quarantined-bucket-name-${Environment}"
 
   ###########################################################################
   # DRIVE TABLES
@@ -97,23 +98,23 @@ Outputs:
 
   DriveTableName:
     Description: Name of the Drive DynamoDB table
-    Value: !ImportValue
-      Fn::Sub: drive-table-name-${Environment}
+    Value:
+      ImportValue: !Sub "drive-table-name-${Environment}"
 
   ScanTableName:
     Description: Name of the Scan DynamoDB table
-    Value: !ImportValue
-      Fn::Sub: scan-table-name-${Environment}
+    Value:
+      ImportValue: !Sub "scan-table-name-${Environment}"
 
   UserSettingsTableName:
     Description: DynamoDB table for user settings
-    Value: !ImportValue
-      Fn::Sub: user-settings-table-name-${Environment}
+    Value:
+      ImportValue: !Sub "user-settings-table-name-${Environment}"
 
   ShareTableName:
     Description: DynamoDB table for share records
-    Value: !ImportValue
-      Fn::Sub: share-table-name-${Environment}
+    Value:
+      ImportValue: !Sub "share-table-name-${Environment}"
 
   ###########################################################################
   # NOTES TABLE
@@ -121,8 +122,8 @@ Outputs:
 
   NotesTableName:
     Description: DynamoDB table for notes
-    Value: !ImportValue
-      Fn::Sub: notes-table-name-${Environment}
+    Value:
+      ImportValue: !Sub "notes-table-name-${Environment}"
 
   ###########################################################################
   # SQS
@@ -130,13 +131,13 @@ Outputs:
 
   ScanQueueUrl:
     Description: URL of SQS queue used for scanning
-    Value: !ImportValue
-      Fn::Sub: scan-queue-url-${Environment}
+    Value:
+      ImportValue: !Sub "scan-queue-url-${Environment}"
 
   ScanQueueArn:
     Description: ARN of SQS queue used for scanning
-    Value: !ImportValue
-      Fn::Sub: scan-queue-arn-${Environment}
+    Value:
+      ImportValue: !Sub "scan-queue-arn-${Environment}"
 
   ###########################################################################
   # SHARED LAYER
@@ -144,5 +145,5 @@ Outputs:
 
   AwsSdkV3LayerArn:
     Description: ARN of the AWS SDK v3 Layer
-    Value: !ImportValue
-      Fn::Sub: aws-sdk-v3-layer-${Environment}
+    Value:
+      ImportValue: !Sub "aws-sdk-v3-layer-${Environment}"

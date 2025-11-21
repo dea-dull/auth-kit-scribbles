@@ -24,8 +24,9 @@ DriveUnscannedBucket:
     NotificationConfiguration:
       QueueConfigurations:
         - Event: s3:ObjectCreated:*
-          Queue: !ImportValue
-            Fn::Sub: scan-queue-arn-${Environment}
+          Queue:
+            ImportValue: !Sub "scan-queue-arn-${Environment}"
+
 
     PublicAccessBlockConfiguration:
       BlockPublicAcls: true

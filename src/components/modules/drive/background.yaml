@@ -15,50 +15,50 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue
-        Fn::Sub: scan-queue-arn-${Environment}
+      Value:
+        ImportValue: !Sub "scan-queue-arn-${Environment}"
 
   ScanQueueUrlParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue
-        Fn::Sub: scan-queue-url-${Environment}
+      Value:
+        ImportValue: !Sub "scan-queue-url-${Environment}"
 
   DriveBucketNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue
-        Fn::Sub: drive-bucket-name-${Environment}
+      Value:
+        ImportValue: !Sub "drive-bucket-name-${Environment}"
 
   DriveUnscannedBucketNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue
-        Fn::Sub: drive-unscanned-bucket-name-${Environment}
+      Value:
+        ImportValue: !Sub "drive-unscanned-bucket-name-${Environment}"
 
   QuarantinedBucketNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue
-        Fn::Sub: drive-quarantined-bucket-name-${Environment}
+      Value:
+        ImportValue: !Sub "drive-quarantined-bucket-name-${Environment}"
 
   ScanTableNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue
-        Fn::Sub: scan-table-name-${Environment}
+      Value:
+        ImportValue: !Sub "scan-table-name-${Environment}"
 
   DriveTableNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue
-        Fn::Sub: drive-table-name-${Environment}
+      Value:
+        ImportValue: !Sub "drive-table-name-${Environment}"
 
   ###########################################################################
   # SCAN QUEUE PROCESSOR
@@ -67,55 +67,53 @@ Resources:
   ScanProcessorFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub scanProcessor-${Environment}
+      FunctionName: !Sub "scanProcessor-${Environment}"
       CodeUri: ../../drive/lambda/background-services/
       Handler: scanProcessor.handler
       Runtime: nodejs18.x
       Timeout: 30
       Layers:
-        - !ImportValue
-          Fn::Sub: aws-sdk-v3-layer-${Environment}
+        -
+          ImportValue: !Sub "aws-sdk-v3-layer-${Environment}"
       Environment:
         Variables:
-          SCAN_TABLE: !ImportValue
-            Fn::Sub: scan-table-name-${Environment}
-          DRIVE_TABLE: !ImportValue
-            Fn::Sub: drive-table-name-${Environment}
-          DRIVE_BUCKET: !ImportValue
-            Fn::Sub: drive-bucket-name-${Environment}
-          DRIVE_UNSCANNED_BUCKET: !ImportValue
-            Fn::Sub: drive-unscanned-bucket-name-${Environment}
-          QUARANTINE_BUCKET: !ImportValue
-            Fn::Sub: drive-quarantined-bucket-name-${Environment}
+          SCAN_TABLE:
+            ImportValue: !Sub "scan-table-name-${Environment}"
+          DRIVE_TABLE:
+            ImportValue: !Sub "drive-table-name-${Environment}"
+          DRIVE_BUCKET:
+            ImportValue: !Sub "drive-bucket-name-${Environment}"
+          DRIVE_UNSCANNED_BUCKET:
+            ImportValue: !Sub "drive-unscanned-bucket-name-${Environment}"
+          QUARANTINE_BUCKET:
+            ImportValue: !Sub "drive-quarantined-bucket-name-${Environment}"
       Policies:
         - Statement:
-            # read from unscanned bucket, write to drive/quarantine
             - Effect: Allow
               Action:
                 - s3:GetObject
-              Resource: !Sub arn:aws:s3:::${DriveUnscannedBucketNameParam}/*
+              Resource: !Sub "arn:aws:s3:::${DriveUnscannedBucketNameParam}/*"
             - Effect: Allow
               Action:
                 - s3:PutObject
                 - s3:DeleteObject
               Resource:
-                - !Sub arn:aws:s3:::${DriveBucketNameParam}/*
-                - !Sub arn:aws:s3:::${QuarantinedBucketNameParam}/*
-            # update scan table + drive table
+                - !Sub "arn:aws:s3:::${DriveBucketNameParam}/*"
+                - !Sub "arn:aws:s3:::${QuarantinedBucketNameParam}/*"
             - Effect: Allow
               Action:
                 - dynamodb:UpdateItem
                 - dynamodb:PutItem
                 - dynamodb:GetItem
               Resource:
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ScanTableNameParam}
-                - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DriveTableNameParam}
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ScanTableNameParam}"
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DriveTableNameParam}"
       Events:
         ScanQueueEvent:
           Type: SQS
           Properties:
-            Queue: !ImportValue
-              Fn::Sub: scan-queue-arn-${Environment}
+            Queue:
+              ImportValue: !Sub "scan-queue-arn-${Environment}"
             BatchSize: 1
 
   ###########################################################################
@@ -131,25 +129,25 @@ Resources:
 #       Runtime: nodejs18.x
 #       Timeout: 20
 #       Layers:
-#         - !ImportValue
-#           Fn::Sub: aws-sdk-v3-layer-${Environment}
+#         -
+#           ImportValue: !Sub "aws-sdk-v3-layer-${Environment}"
 #       Environment:
 #         Variables:
-#           DRIVE_TABLE: !ImportValue
-#             Fn::Sub: drive-table-name-${Environment}
-#           QUARANTINE_BUCKET: !ImportValue
-#             Fn::Sub: drive-quarantined-bucket-name-${Environment}
+#           DRIVE_TABLE:
+#             ImportValue: !Sub "drive-table-name-${Environment}"
+#           QUARANTINE_BUCKET:
+#             ImportValue: !Sub "drive-quarantined-bucket-name-${Environment}"
 #       Policies:
 #         - Statement:
 #             - Effect: Allow
 #               Action:
 #                 - s3:GetObject
 #                 - s3:DeleteObject
-#               Resource: !Sub arn:aws:s3:::${QuarantinedBucketNameParam}/*
+#               Resource: !Sub "arn:aws:s3:::${QuarantinedBucketNameParam}/*"
 #             - Effect: Allow
 #               Action:
 #                 - dynamodb:UpdateItem
-#               Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DriveTableNameParam}
+#               Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DriveTableNameParam}"
 
   ###########################################################################
   # CLEANUP HANDLER (IF YOU USE IT)
@@ -158,18 +156,18 @@ Resources:
   CleanupHandlerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub cleanupHandler-${Environment}
+      FunctionName: !Sub "cleanupHandler-${Environment}"
       CodeUri: ../../drive/lambda/background-services/
       Handler: cleanup.handler
       Runtime: nodejs18.x
       Timeout: 20
       Layers:
-        - !ImportValue
-          Fn::Sub: aws-sdk-v3-layer-${Environment}
+        -
+          ImportValue: !Sub "aws-sdk-v3-layer-${Environment}"
       Environment:
         Variables:
-          DRIVE_TABLE: !ImportValue
-            Fn::Sub: drive-table-name-${Environment}
+          DRIVE_TABLE:
+            ImportValue: !Sub "drive-table-name-${Environment}"
       Policies:
         - Statement:
             - Effect: Allow
@@ -177,8 +175,6 @@ Resources:
                 - dynamodb:UpdateItem
                 - dynamodb:Scan
                 - dynamodb:DeleteItem
-              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DriveTableNameParam}
+              Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DriveTableNameParam}"
 
 Outputs: {}
-
-
