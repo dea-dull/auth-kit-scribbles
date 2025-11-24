@@ -1,3 +1,4 @@
+
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
@@ -10,41 +11,41 @@ Resources:
   ###########################################################################
   # SQS QUEUE FOR SCAN EVENTS
   ###########################################################################
-ScanQueue:
-  Type: AWS::SQS::Queue
-  Properties:
-    QueueName: !Sub scan-queue-${Environment}
-    VisibilityTimeout: 1800
-    MessageRetentionPeriod: 86400
-    RedrivePolicy:
-      deadLetterTargetArn: !GetAtt ScanDeadLetterQueue.Arn
-      maxReceiveCount: 5
 
-ScanDeadLetterQueue:
-  Type: AWS::SQS::Queue
-  Properties:
-    QueueName: !Sub scan-dlq-${Environment}
-    MessageRetentionPeriod: 1209600 # 14 days
+  ScanQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub scan-queue-${Environment}
+      VisibilityTimeout: 1800
+      MessageRetentionPeriod: 86400
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ScanDeadLetterQueue.Arn
+        maxReceiveCount: 5
 
-ScanQueuePolicy:
-  Type: AWS::SQS::QueuePolicy
-  Properties:
-    Queues:
-      - !Ref ScanQueue
-    PolicyDocument:
-      Version: '2012-10-17'
-      Statement:
-        - Sid: AllowS3ToSendMessages
-          Effect: Allow
-          Principal:
-            Service: s3.amazonaws.com
-          Action:
-            - sqs:SendMessage
-          Resource: !GetAtt ScanQueue.Arn
-          Condition:
-            StringEquals:
-              aws:SourceAccount: !Ref AWS::AccountId
+  ScanDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub scan-dlq-${Environment}
+      MessageRetentionPeriod: 1209600 # 14 days
 
+  ScanQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref ScanQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowS3ToSendMessages
+            Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Action:
+              - sqs:SendMessage
+            Resource: !GetAtt ScanQueue.Arn
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
 
 Outputs:
 

@@ -23,3 +23,9 @@ Plan-Controlled:
  - Device connection limits
 
 Trash is **never** plan-restricted.
+
+
+--------------------------------------------
+
+
+created an authorizer in cognito

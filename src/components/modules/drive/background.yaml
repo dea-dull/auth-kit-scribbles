@@ -1,3 +1,5 @@
+
+
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
@@ -15,43 +17,50 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue "scan-queue-arn-${Environment}"
+      Value: !ImportValue 
+        Fn::Sub: "scan-queue-arn-${Environment}"
 
   ScanQueueUrlParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue "scan-queue-url-${Environment}"
+      Value: !ImportValue 
+        Fn::Sub: "scan-queue-url-${Environment}"
 
   DriveBucketNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue "drive-bucket-name-${Environment}"
+      Value: !ImportValue 
+        Fn::Sub: "drive-bucket-name-${Environment}"
 
   DriveUnscannedBucketNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue "drive-unscanned-bucket-name-${Environment}"
+      Value: !ImportValue 
+        Fn::Sub: "drive-unscanned-bucket-name-${Environment}"
 
   QuarantinedBucketNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue "drive-quarantined-bucket-name-${Environment}"
+      Value: !ImportValue 
+        Fn::Sub: "drive-quarantined-bucket-name-${Environment}"
 
   ScanTableNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue "scan-table-name-${Environment}"
+      Value: !ImportValue 
+        Fn::Sub: "scan-table-name-${Environment}"
 
   DriveTableNameParam:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Value: !ImportValue "drive-table-name-${Environment}"
+      Value: !ImportValue 
+        Fn::Sub: "drive-table-name-${Environment}"
 
   ###########################################################################
   # SCAN QUEUE PROCESSOR
@@ -63,17 +72,23 @@ Resources:
       FunctionName: !Sub "scanProcessor-${Environment}"
       CodeUri: ../../drive/lambda/background-services/
       Handler: scanProcessor.handler
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Timeout: 30
       Layers:
-        - !ImportValue "aws-sdk-v3-layer-${Environment}"
+        - !ImportValue 
+          Fn::Sub: "aws-sdk-v3-layer-${Environment}"
       Environment:
         Variables:
-          SCAN_TABLE: !ImportValue "scan-table-name-${Environment}"
-          DRIVE_TABLE: !ImportValue "drive-table-name-${Environment}"
-          DRIVE_BUCKET: !ImportValue "drive-bucket-name-${Environment}"
-          DRIVE_UNSCANNED_BUCKET: !ImportValue "drive-unscanned-bucket-name-${Environment}"
-          QUARANTINE_BUCKET: !ImportValue "drive-quarantined-bucket-name-${Environment}"
+          SCAN_TABLE: !ImportValue 
+            Fn::Sub: "scan-table-name-${Environment}"
+          DRIVE_TABLE: !ImportValue 
+            Fn::Sub: "drive-table-name-${Environment}"
+          DRIVE_BUCKET: !ImportValue 
+            Fn::Sub: "drive-bucket-name-${Environment}"
+          DRIVE_UNSCANNED_BUCKET: !ImportValue 
+            Fn::Sub: "drive-unscanned-bucket-name-${Environment}"
+          QUARANTINE_BUCKET: !ImportValue 
+            Fn::Sub: "drive-quarantined-bucket-name-${Environment}"
       Policies:
         - Statement:
             - Effect: Allow
@@ -99,7 +114,8 @@ Resources:
         ScanQueueEvent:
           Type: SQS
           Properties:
-            Queue: !ImportValue "scan-queue-arn-${Environment}"
+            Queue: !ImportValue 
+              Fn::Sub: "scan-queue-arn-${Environment}"
             BatchSize: 1
 
   ###########################################################################
@@ -112,14 +128,17 @@ Resources:
 #       FunctionName: !Sub quarantineHandler-${Environment}
 #       CodeUri: ../../lambda/background/quarantineHandler/
 #       Handler: index.handler
-#       Runtime: nodejs18.x
+#       Runtime: nodejs22.x
 #       Timeout: 20
 #       Layers:
-#         - !ImportValue "aws-sdk-v3-layer-${Environment}"
+#         - !ImportValue 
+#           Fn::Sub: "aws-sdk-v3-layer-${Environment}"
 #       Environment:
 #         Variables:
-#           DRIVE_TABLE: !ImportValue "drive-table-name-${Environment}"
-#           QUARANTINE_BUCKET: !ImportValue "drive-quarantined-bucket-name-${Environment}"
+#           DRIVE_TABLE: !ImportValue 
+#             Fn::Sub: "drive-table-name-${Environment}"
+#           QUARANTINE_BUCKET: !ImportValue 
+#             Fn::Sub: "drive-quarantined-bucket-name-${Environment}"
 #       Policies:
 #         - Statement:
 #             - Effect: Allow
@@ -142,13 +161,15 @@ Resources:
       FunctionName: !Sub "cleanupHandler-${Environment}"
       CodeUri: ../../drive/lambda/background-services/
       Handler: cleanup.handler
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       Timeout: 20
       Layers:
-        - !ImportValue "aws-sdk-v3-layer-${Environment}"
+        - !ImportValue 
+          Fn::Sub: "aws-sdk-v3-layer-${Environment}"
       Environment:
         Variables:
-          DRIVE_TABLE: !ImportValue "drive-table-name-${Environment}"
+          DRIVE_TABLE: !ImportValue 
+            Fn::Sub: "drive-table-name-${Environment}"
       Policies:
         - Statement:
             - Effect: Allow

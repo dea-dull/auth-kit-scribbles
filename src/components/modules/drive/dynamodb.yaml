@@ -1,3 +1,4 @@
+
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
@@ -119,8 +120,6 @@ Resources:
       AttributeDefinitions:
         - AttributeName: share_id
           AttributeType: S
-        - AttributeName: expires_at
-          AttributeType: N
       KeySchema:
         - AttributeName: share_id
           KeyType: HASH
@@ -149,3 +148,4 @@ Outputs:
     Value: !Ref ShareTable
     Export:
       Name: !Sub share-table-name-${Environment}
+

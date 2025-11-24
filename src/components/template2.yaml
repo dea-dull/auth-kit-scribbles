@@ -8,6 +8,16 @@ Parameters:
 
 Resources:
 
+  StarageApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      Name: !Sub "starage-backend-${Environment}"
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+
   ###########################################################################
   # LAYERS
   ###########################################################################

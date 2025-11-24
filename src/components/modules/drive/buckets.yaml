@@ -1,3 +1,4 @@
+
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
@@ -24,7 +25,8 @@ Resources:
       NotificationConfiguration:
         QueueConfigurations:
           - Event: s3:ObjectCreated:*
-            Queue: !ImportValue "scan-queue-arn-${Environment}"
+            Queue: !ImportValue 
+              Fn::Sub: "scan-queue-arn-${Environment}"
 
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true

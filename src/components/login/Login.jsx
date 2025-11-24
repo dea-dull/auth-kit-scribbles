@@ -35,7 +35,7 @@ const Login = () => {
     
     // If we get here, login was successful!
     notify.success("Successfully logged in!");
-    navigate('/dashboard');
+    navigate('/notes');
     
   } catch (error) {
     console.error("Login error:", error);
