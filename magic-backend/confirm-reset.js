@@ -31,8 +31,8 @@ export const handler = async (event) => {
         Key: { token },
       })
     );
-
-    if (!Item || Date.now() > Item.expiry) {
+    const now = Math.floor(Date.now() / 1000);
+    if (!Item || now > Item.expiresAt) {
       return { 
         statusCode: 400, 
         headers: CORS_HEADERS,

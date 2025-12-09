@@ -10,7 +10,7 @@ import VerificationResult from './components/verify/Verify.jsx';
 import Dashboard from './components/dashboard/Dashboard.jsx';
 import { Toaster } from "sonner";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import amplifyOutputs from './amplify_outputs.json';
+import amplifyOutputs from './puts.json';
 import Layout from './components/layout/Layout.jsx';
 import '@mantine/core/styles.css';
 // Must come after core styles:
