@@ -1,0 +1,12 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "starage-magiclink-backend"
+resolve_s3 = true
+s3_prefix = "starage-magiclink-backend"
+region = "us-west-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+parameter_overrides = "UserPoolId=\"us-west-2_jOGK1HVtT\" ClientId=\"3lr0trnq2ch6hvtlm310jja17u\" FrontendUrl=\"http://44.252.212.192:5173\" FromEmail=\"noreply@ellionis.click\" ApiUrl=\"https://iszrjrl6r1.execute-api.us-west-2.amazonaws.com/dev\" DOMAIN=\"ellionis.click\" ResetTokenTableName=\"starage-reset-token-table\" MagicTokenTableName=\"starage-magic-token-table\" ApiName=\"starage-magiclink-backend\""
+image_repositories = []

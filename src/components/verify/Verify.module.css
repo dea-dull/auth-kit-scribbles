@@ -1,0 +1,20 @@
+.successMessage,
+.errorMessage {
+  padding: 20px;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.successMessage h2 {
+  color: green;
+}
+
+.errorMessage h2 {
+  color: red;
+}
+
+.countdown {
+  font-weight: bold;
+  color: gold; /* Gold color for countdown */
+}

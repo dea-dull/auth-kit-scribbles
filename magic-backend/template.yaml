@@ -1,0 +1,267 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Ellionis Backend (Signup + Verify + Resend + Reset Password)
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 10
+    Environment:
+      Variables:
+        USER_POOL_ID: !Ref UserPoolId
+        CLIENT_ID: !Ref ClientId
+        FRONTEND_URL: !Ref FrontendUrl
+        MAGIC_TOKEN_TABLE_NAME: !Ref MagicTokenTableName
+        RESET_TOKEN_TABLE_NAME: !Ref ResetTokenTableName
+        FROM_EMAIL: !Ref FromEmail
+        API_URL: !Ref ApiUrl
+        IDENTITY: !Ref DOMAIN
+
+Resources:
+
+  MagicTokensTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref MagicTokenTableName
+      AttributeDefinitions:
+        - AttributeName: token
+          AttributeType: S
+      KeySchema:
+        - AttributeName: token
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+
+  ResetTokensTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref ResetTokenTableName
+      AttributeDefinitions:
+        - AttributeName: token
+          AttributeType: S
+      KeySchema:
+        - AttributeName: token
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+
+  # Signup Lambda
+  SignupFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: signup.handler
+      Events:
+        SignupApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /signup
+            Method: post      
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+              Resource: !GetAtt MagicTokensTable.Arn
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:SignUp
+              Resource: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource:
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${DOMAIN}
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@gmail.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@yahoo.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@hotmail.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@outlook.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/*
+
+  # Verify Lambda
+  VerifyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: verify.handler
+      Events:
+        VerifyApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /verify
+            Method: get
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:UpdateItem
+              Resource: !GetAtt MagicTokensTable.Arn  
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminConfirmSignUp
+                - cognito-idp:AdminUpdateUserAttributes
+              Resource: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}
+
+  # Resend Verification Lambda
+  ResendVerificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: resend-verification.handler
+      Events:
+        ResendApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /resend-verification
+            Method: post
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:Scan
+              Resource: !GetAtt MagicTokensTable.Arn  
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminGetUser
+              Resource: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource:
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${DOMAIN}
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@gmail.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@yahoo.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@hotmail.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@outlook.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/*
+
+  # Request Reset Password Lambda
+  RequestResetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: request-reset.handler
+      Events:
+        RequestResetApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /request-reset
+            Method: post
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !GetAtt ResetTokensTable.Arn  
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminGetUser
+              Resource: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource:
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${DOMAIN}
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@gmail.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@yahoo.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@hotmail.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*@outlook.com
+                - !Sub arn:aws:ses:${AWS::Region}:${AWS::AccountId}:configuration-set/*
+
+  # Validate Reset Token Lambda
+  ValidateResetTokenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: validate-reset-token.handler
+      Events:
+        ValidateResetApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /validate-reset-token
+            Method: get
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource: !GetAtt ResetTokensTable.Arn  
+
+  # Confirm Reset Password Lambda
+  ConfirmResetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: confirm-reset.handler
+      Events:
+        ConfirmResetApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /confirm-reset
+            Method: post
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:DeleteItem
+              Resource: !GetAtt ResetTokensTable.Arn  
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminSetUserPassword
+              Resource: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}
+
+  # REST API
+  ServerlessRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Ref ApiName
+      StageName: Dev
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,Origin,Accept'"
+        AllowOrigin: !Ref FrontendUrl
+
+Parameters:
+  UserPoolId:
+    Type: String
+  ClientId:
+    Type: String
+  FrontendUrl:
+    Type: String
+  FromEmail:
+    Type: String
+  ApiUrl:
+    Type: String
+  DOMAIN:
+    Type: String
+  ResetTokenTableName:
+    Type: String
+  MagicTokenTableName:
+    Type: String
+  ApiName:
+    Type: String

@@ -1,0 +1,885 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+
+Resources:
+
+  StarageApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      Name: !Sub "starage-backend-${Environment}"
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+
+  ###########################################################################
+  # LAYERS
+  ###########################################################################
+
+  AwsSdkV3Layer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub aws-sdk-v3-${Environment}
+      Description: AWS SDK v3 for DynamoDB operations
+      ContentUri: ../../layers/aws-sdk-v3-layer/
+      CompatibleRuntimes:
+        - nodejs18.x
+      RetentionPolicy: Retain
+
+  ###########################################################################
+  # S3 BUCKETS (Corrected, Hardcoded, With Notifications Integrated)
+  ###########################################################################
+
+  DriveUnscannedBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub drive-unscanned-${Environment}-${AWS::AccountId}
+      LifecycleConfiguration:
+        Rules:
+          - Id: CleanupFailedUploads
+            Status: Enabled
+            Prefix: ''
+            ExpirationInDays: 1
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+
+      # S3 → SQS notifications embedded here (correct)
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Event: s3:ObjectCreated:*
+            Queue: !GetAtt ScanQueue.Arn
+
+  DriveBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub drive-${Environment}-${AWS::AccountId}
+      VersioningConfiguration:
+        Status: Enabled
+
+  DriveQuarantinedBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub drive-quarantined-${Environment}-${AWS::AccountId}
+      LifecycleConfiguration:
+        Rules:
+          - Id: QuarantineCleanup
+            Status: Enabled
+            Prefix: ''
+            ExpirationInDays: 5
+
+  ###########################################################################
+  # DYNAMODB TABLES
+  ###########################################################################
+
+  UserSettingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub user-settings-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: plan_type
+          AttributeType: S
+        - AttributeName: quota_reset_at
+          AttributeType: 'N'
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: quota_reset_at
+        Enabled: true
+      GlobalSecondaryIndexes:
+        - IndexName: PlanTypeIndex
+          KeySchema:
+            - AttributeName: plan_type
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+        - IndexName: QuotaResetIndex
+          KeySchema:
+            - AttributeName: quota_reset_at
+              KeyType: HASH
+          Projection:
+            ProjectionType: KEYS_ONLY
+      Tags:
+        - Key: Project
+          Value: Starage
+        - Key: Purpose
+          Value: UserSettings
+
+  DriveTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub drive-table-${Environment}
+      BillingMode: PAY_PER_REQUEST
+
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: file_id
+          AttributeType: S
+        - AttributeName: folder_id
+          AttributeType: S
+        - AttributeName: last_accessed
+          AttributeType: 'N'
+        - AttributeName: trashed
+          AttributeType: 'N'
+
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: file_id
+          KeyType: RANGE
+
+      GlobalSecondaryIndexes:
+
+        # GSI 1 — files by folder
+        - IndexName: UserFolderIndex
+          KeySchema:
+            - AttributeName: user_id
+              KeyType: HASH
+            - AttributeName: folder_id
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+        # GSI 2 — recent files
+        - IndexName: UserLastAccessedIndex
+          KeySchema:
+            - AttributeName: user_id
+              KeyType: HASH
+            - AttributeName: last_accessed
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+        # GSI 3 — trash
+        - IndexName: TrashIndex
+          KeySchema:
+            - AttributeName: trashed
+              KeyType: HASH
+            - AttributeName: last_accessed
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  ScanTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub scan-table-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: file_id
+          AttributeType: S
+        - AttributeName: scan_status
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: file_id
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: ScanStatusIndex
+          KeySchema:
+            - AttributeName: scan_status
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  ShareTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub share-table-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: share_id
+          AttributeType: S
+        - AttributeName: expires_at
+          AttributeType: 'N'
+      KeySchema:
+        - AttributeName: share_id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: expires_at
+        Enabled: true
+
+  NotesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub Starage-App-Notes-${Environment}
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: noteId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: noteId
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+  ###########################################################################
+  # NOTES FUNCTIONS
+  ###########################################################################
+
+  SyncNoteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub notes-sync-${Environment}
+      CodeUri: notes/lambda/sync-notes/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Layers:
+        - !Ref AwsSdkV3Layer
+      Environment:
+        Variables:
+          NOTES_TABLE: !Ref NotesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NotesTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /notes/sync
+            Method: post
+
+  GetNotesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub notes-get-${Environment}
+      CodeUri: notes/lambda/get-notes/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Layers:
+        - !Ref AwsSdkV3Layer
+      Environment:
+        Variables:
+          NOTES_TABLE: !Ref NotesTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref NotesTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /notes
+            Method: get
+
+  DeleteNoteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub notes-delete-${Environment}
+      CodeUri: notes/lambda/delete-notes/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Layers:
+        - !Ref AwsSdkV3Layer
+      Environment:
+        Variables:
+          NOTES_TABLE: !Ref NotesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NotesTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /notes/{id}
+            Method: delete
+
+  RestoreNoteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub notes-restore-${Environment}
+      CodeUri: notes/lambda/restore-notes/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Layers:
+        - !Ref AwsSdkV3Layer
+      Environment:
+        Variables:
+          NOTES_TABLE: !Ref NotesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NotesTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /notes/{id}/restore
+            Method: post
+
+  CleanupNotesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub notes-cleanup-${Environment}
+      CodeUri: notes/lambda/cleanup-notes/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Layers:
+        - !Ref AwsSdkV3Layer
+      Environment:
+        Variables:
+          NOTES_TABLE: !Ref NotesTable
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref NotesTable
+      Events:
+        DailyCleanup:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 day)
+
+  ###########################################################################
+  # DRIVE — S3 PRESIGNED URL FUNCTIONS
+  ###########################################################################
+
+  GetPresignedUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub getPresignedUrl-${Environment}
+      CodeUri: lambda/getPresignedUrl/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Layers:
+        - !Ref AwsSdkV3Layer
+      Policies:
+        - Statement:
+            - Sid: AllowUploadOnlyToUnscannedBucket
+              Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !Sub arn:aws:s3:::${DriveUnscannedBucket}/*
+
+            - Sid: AllowDownloadOnlyFromDriveBucket
+              Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource: !Sub arn:aws:s3:::${DriveBucket}/*
+
+            - Sid: AllowReadUserSettings
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+              Resource: !GetAtt UserSettingsTable.Arn
+
+      Environment:
+        Variables:
+          DRIVE_UNSCANNED_BUCKET: !Ref DriveUnscannedBucket
+          DRIVE_BUCKET: !Ref DriveBucket
+          USER_SETTINGS_TABLE: !Ref UserSettingsTable
+      Events:
+        PresignedUrl:
+          Type: Api
+          Properties:
+            Path: /drive/pre-signed/transmit
+            Method: POST
+
+  PresignedUrlShareFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub presignedUrlShare-${Environment}
+      CodeUri: lambda/presignedUrlShare/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Layers:
+        - !Ref AwsSdkV3Layer
+      Policies:
+        - Statement:
+            - Sid: AllowGetObjectFromDriveBucket
+              Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource: !Sub arn:aws:s3:::${DriveBucket}/*
+
+            - Sid: AllowPutAndGetItemInShareTable
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:GetItem
+              Resource: !GetAtt ShareTable.Arn
+
+            - Sid: AllowReadAndUpdateUserSettings
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:UpdateItem
+              Resource: !GetAtt UserSettingsTable.Arn
+
+      Environment:
+        Variables:
+          DRIVE_BUCKET: !Ref DriveBucket
+          SHARE_TABLE: !Ref ShareTable
+          USER_SETTINGS_TABLE: !Ref UserSettingsTable
+      Events:
+        ShareUrl:
+          Type: Api
+          Properties:
+            Path: /drive/pre-signed/share
+            Method: POST
+
+  ###########################################################################
+  # DRIVE — FILE SERVICES
+  ###########################################################################
+
+  ListFilesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub listFiles-${Environment}
+      CodeUri: lambda/listFiles/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:Query
+              Resource:
+                - !GetAtt DriveTable.Arn
+                - !Sub ${DriveTable.Arn}/index/UserLastAccessedIndex
+                - !Sub ${DriveTable.Arn}/index/UserFolderIndex
+                - !Sub ${DriveTable.Arn}/index/TrashIndex
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+              Resource: !GetAtt UserSettingsTable.Arn
+      Environment:
+        Variables:
+          DRIVE_TABLE: !Ref DriveTable
+          USER_SETTINGS_TABLE: !Ref UserSettingsTable
+      Events:
+        ListFiles:
+          Type: Api
+          Properties:
+            Path: /drive/file-service/listFiles
+            Method: GET
+
+  MoveFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub moveFile-${Environment}
+      CodeUri: lambda/moveFile/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+                - s3:DeleteObject
+                - s3:GetObject
+              Resource: !Sub arn:aws:s3:::${DriveBucket}/*
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+              Resource: !GetAtt DriveTable.Arn
+      Environment:
+        Variables:
+          DRIVE_BUCKET: !Ref DriveBucket
+          DRIVE_TABLE: !Ref DriveTable
+      Events:
+        MoveFile:
+          Type: Api
+          Properties:
+            Path: /drive/file-services/{id}/move
+            Method: PATCH
+
+  DeleteFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub DeleteFile-${Environment}
+      CodeUri: lambda/DeleteFile/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:DeleteObject
+              Resource:
+                - !Sub arn:aws:s3:::${DriveBucket}/*
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+              Resource: !GetAtt DriveTable.Arn
+      Environment:
+        Variables:
+          DRIVE_BUCKET: !Ref DriveBucket
+          DRIVE_TABLE: !Ref DriveTable
+      Events:
+        SoftDelete:
+          Type: Api
+          Properties:
+            Path: /drive/file-services/{id}/soft-delete
+            Method: DELETE
+
+  RestoreFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub restoreFile-${Environment}
+      CodeUri: lambda/restoreFile/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:ListObjectVersions
+                - s3:DeleteObjectVersion
+              Resource:
+                - !Sub arn:aws:s3:::${DriveBucket}/*
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+              Resource: !GetAtt DriveTable.Arn
+      Environment:
+        Variables:
+          DRIVE_BUCKET: !Ref DriveBucket
+          DRIVE_TABLE: !Ref DriveTable
+      Events:
+        RestoreFile:
+          Type: Api
+          Properties:
+            Path: /drive/file-services/{id}/restore
+            Method: POST
+
+  ###########################################################################
+  # DRIVE — FILE RECORD OPERATIONS
+  ###########################################################################
+
+  CreateFileRecordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub createFileRecord-${Environment}
+      CodeUri: lambda/createFileRecord/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource:
+                - !GetAtt DriveTable.Arn
+                - !GetAtt ScanTable.Arn
+                - !GetAtt ShareTable.Arn
+      Environment:
+        Variables:
+          SCAN_TABLE: !Ref ScanTable
+          DRIVE_TABLE: !Ref DriveTable
+          SHARE_TABLE: !Ref ShareTable
+      Events:
+        CreateFile:
+          Type: Api
+          Properties:
+            Path: /drive/file-records/createFileRecord
+            Method: POST
+
+  UpdateFileRecordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub updateFileRecord-${Environment}
+      CodeUri: lambda/updateFileRecord/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt DriveTable.Arn
+                - !GetAtt ScanTable.Arn
+                - !GetAtt ShareTable.Arn
+      Environment:
+        Variables:
+          SCAN_TABLE: !Ref ScanTable
+          DRIVE_TABLE: !Ref DriveTable
+          SHARE_TABLE: !Ref ShareTable
+      Events:
+        UpdateFile:
+          Type: Api
+          Properties:
+            Path: /drive/file-records/updateFileRecord/{id}
+            Method: PATCH
+
+  DeleteFileRecordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub deleteFileRecord-${Environment}
+      CodeUri: lambda/deleteFileRecord/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+              Resource:
+                - !GetAtt DriveTable.Arn
+                - !GetAtt ScanTable.Arn
+                - !GetAtt ShareTable.Arn
+      Environment:
+        Variables:
+          SCAN_TABLE: !Ref ScanTable
+          DRIVE_TABLE: !Ref DriveTable
+          SHARE_TABLE: !Ref ShareTable
+      Events:
+        DeleteFile:
+          Type: Api
+          Properties:
+            Path: /drive/file-records/deleteFileRecord/{id}
+            Method: DELETE
+
+  GetFileRecordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub getFileRecord-${Environment}
+      CodeUri: lambda/getFileRecord/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource:
+                - !GetAtt DriveTable.Arn
+                - !GetAtt ScanTable.Arn
+                - !GetAtt ShareTable.Arn
+      Environment:
+        Variables:
+          SCAN_TABLE: !Ref ScanTable
+          DRIVE_TABLE: !Ref DriveTable
+          SHARE_TABLE: !Ref ShareTable
+      Events:
+        FileInfo:
+          Type: Api
+          Properties:
+            Path: /drive/file-records/getFileRecord/{id}
+            Method: GET
+
+  ###########################################################################
+  # BACKGROUND PROCESSORS
+  ###########################################################################
+
+  ScanProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub scanProcessor-${Environment}
+      CodeUri: lambda/scanProcessor/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Timeout: 900
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - sqs:ReceiveMessage
+                - sqs:DeleteMessage
+                - sqs:GetQueueAttributes
+              Resource: !GetAtt ScanQueue.Arn
+
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:DeleteObject
+              Resource: !Sub arn:aws:s3:::${DriveUnscannedBucket}/*
+
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !Sub arn:aws:s3:::${DriveBucket}/*
+
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !Sub arn:aws:s3:::${DriveQuarantinedBucket}/*
+
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+              Resource:
+                - !GetAtt ScanTable.Arn
+                - !GetAtt DriveTable.Arn
+
+            - Effect: Allow
+              Action:
+                - states:StartExecution
+              Resource: '*'
+              Condition:
+                StringLikeIfExists:
+                  aws:CalledVia: lambda.amazonaws.com
+
+      Environment:
+        Variables:
+          DRIVE_UNSCANNED_BUCKET: !Ref DriveUnscannedBucket
+          DRIVE_BUCKET: !Ref DriveBucket
+          DRIVE_QUARANTINED_BUCKET: !Ref DriveQuarantinedBucket
+          SCAN_TABLE: !Ref ScanTable
+          DRIVE_TABLE: !Ref DriveTable
+      Events:
+        ScanQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ScanQueue.Arn
+            BatchSize: 20
+
+  CleanupWorkerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub cleanupWorker-${Environment}
+      CodeUri: lambda/cleanupWorker/
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Timeout: 300
+      MemorySize: 512
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: !GetAtt DriveBucket.Arn
+
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:DeleteObject
+              Resource: !Sub arn:aws:s3:::${DriveBucket}/*
+
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+                - dynamodb:DeleteItem
+              Resource: !GetAtt DriveTable.Arn
+
+      Environment:
+        Variables:
+          DRIVE_BUCKET: !Ref DriveBucket
+          DRIVE_TABLE: !Ref DriveTable
+
+      Events:
+        DailyCleanup:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 hour)
+
+  ###########################################################################
+  # SQS QUEUE + POLICY FOR S3 SCAN EVENTS
+  ###########################################################################
+
+  ScanQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub scan-queue-${Environment}
+      VisibilityTimeout: 1800 # 30 minutes to match ScanProcessorFunction timeout
+      MessageRetentionPeriod: 86400
+
+  ScanQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref ScanQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+
+          # Allow S3 bucket to send messages to SQS
+          - Sid: AllowS3ToSendMessages
+            Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Action:
+              - sqs:SendMessage
+            Resource: !GetAtt ScanQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt DriveUnscannedBucket.Arn
+  ###########################################################################
+  # OUTPUTS
+  ###########################################################################
+
+Outputs:
+
+  DriveBucketName:
+    Description: Name of the Drive bucket
+    Value: !Ref DriveBucket
+    Export:
+      Name: !Sub drive-bucket-name-${Environment}
+
+  DriveUnscannedBucketName:
+    Description: Name of the Drive unscanned bucket
+    Value: !Ref DriveUnscannedBucket
+    Export:
+      Name: !Sub drive-unscanned-bucket-name-${Environment}
+
+  DriveQuarantinedBucketName:
+    Description: Name of the Drive quarantined bucket
+    Value: !Ref DriveQuarantinedBucket
+    Export:
+      Name: !Sub drive-quarantined-bucket-name-${Environment}
+
+  DriveTableName:
+    Description: Name of the Drive DynamoDB table
+    Value: !Ref DriveTable
+    Export:
+      Name: !Sub drive-table-name-${Environment}
+
+  ScanTableName:
+    Description: Name of the Scan DynamoDB table
+    Value: !Ref ScanTable
+    Export:
+      Name: !Sub scan-table-name-${Environment}
+
+  UserSettingsTableName:
+    Description: DynamoDB table for user settings
+    Value: !Ref UserSettingsTable
+    Export:
+      Name: !Sub user-settings-table-name-${Environment}
+
+  ShareTableName:
+    Description: DynamoDB table for share records
+    Value: !Ref ShareTable
+    Export:
+      Name: !Sub share-table-name-${Environment}
+
+  NotesTableName:
+    Description: DynamoDB table for notes
+    Value: !Ref NotesTable
+    Export:
+      Name: !Sub notes-table-name-${Environment}
+
+  ScanQueueUrl:
+    Description: URL of the SQS queue used for scanning
+    Value: !Ref ScanQueue
+    Export:
+      Name: !Sub scan-queue-url-${Environment}
+
+  AwsSdkV3LayerArn:
+    Description: ARN of the AWS SDK v3 Layer
+    Value: !Ref AwsSdkV3Layer
+    Export:
+      Name: !Sub aws-sdk-v3-layer-${Environment}

@@ -1,0 +1,159 @@
+/* Global box-sizing for consistency */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Prevent background scroll when overlay is open (add .modal-open to body in JS) */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Fullscreen overlay with strong blur and solid dark color */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85); /* darker for less distraction */
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px); /* Safari support */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.25s ease forwards;
+  z-index: 1000;
+}
+
+/* Center card with extra top padding for close button space */
+.card {
+  background: var(--card-bg, rgba(28, 28, 28, 0.97)); /* nearly solid, but not pure black */
+  color: #fff;
+  padding: 2rem 2rem 2rem 2rem;
+  padding-top: 2.8rem; /* extra space for close button */
+  border-radius: 12px;
+  max-width: 420px;
+  width: 90vw;
+  min-width: 0;
+  text-align: center;
+  position: relative;
+  transform: scale(0.9);
+  opacity: 0;
+  animation: popIn 0.25s ease forwards;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+ 
+ .closeBtn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.2rem;
+  background: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.22); /* subtle white border */
+  border-radius: 20%;
+  color: inherit;
+  font-size: 1.3rem;
+  width: 2.3rem;
+  height: 2.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
+  z-index: 2;
+  /* Optional: add a slight background blur effect for glassy look */
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.closeBtn:hover,
+.closeBtn:focus {
+  color: #FFD700;
+  border-color: #FFD700;
+  background: rgba(255, 215, 0, 0.08); /* faint gold background on hover */
+}
+
+
+/* OTP inputs */
+.otpInputs {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Responsive OTP box sizing */
+.otpBox {
+  width: 44px;
+  height: 44px;
+  font-size: 1.4rem;
+  text-align: center;
+  border: 1px solid var(--border-color, #444);
+  border-radius: 8px;
+  background: var(--input-bg, rgba(255,255,255,0.04));
+  color: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.otpBox:focus {
+  border-color: var(--focus-color, #888);
+}
+
+/* Make OTP boxes shrink gracefully on smaller screens */
+@media (max-width: 400px) {
+  .card {
+    padding: 1.1rem 0.6rem 1.1rem 0.6rem;
+    padding-top: 2.2rem; /* still room for close button on mobile */
+    max-width: 97vw;
+  }
+  .closeBtn {
+    top: 0.7rem;
+    right: 0.7rem;
+    font-size: 1.1rem;
+  }
+  .otpBox {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+  .otpInputs {
+    gap: 0.18rem;
+  }
+}
+
+/* Verify button */
+.verifyBtn {
+  background: var(--button-bg, rgba(255,255,255,0.07));
+  color: inherit;
+  border: 1px solid var(--border-color, #444);
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 1rem;
+  transition: background 0.15s, border-color 0.18s;
+}
+.verifyBtn:hover, .verifyBtn:focus {
+  background: var(--button-hover-bg, rgba(255,255,255,0.15));
+  border: 1px solid #FFD700;
+}
+
+/* Resend link */
+.resend {
+  font-size: 0.85rem;
+  margin-top: 1rem;
+}
+.resend span {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+

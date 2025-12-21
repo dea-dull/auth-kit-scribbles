@@ -1,0 +1,42 @@
+.container {
+  max-width: 400px;
+  margin: 5rem auto;
+  padding: 3rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  color: #fff;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+p {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+.email {
+  color: #FFD700; /* gold */
+  font-weight: 600;
+}
+.fp-span {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #aaa;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.3s ease;
+}
+
+.fp-span:hover {
+  color: gold;
+}

@@ -1,0 +1,288 @@
+/* .mantine-ActionIcon-root,
+.mantine-Button-root,
+.mantine-Menu-target,
+.mantine-Input-input,
+.mantine-Select-input,
+.mantine-TextInput-input,
+.mantine-Textarea-input,
+.mantine-Checkbox-root,
+.mantine-Card-root,
+.mantine-Progress-root {
+  box-shadow: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+}
+
+
+.mantine-ActionIcon-root:hover,
+.mantine-ActionIcon-root:focus,
+.mantine-Menu-target:focus,
+.mantine-Menu-target:hover,
+.mantine-Button-root:hover,
+.mantine-Button-root:focus {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: inherit !important;
+}
+
+
+.mantine-ActionIcon-root:focus-visible,
+.mantine-Button-root:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+
+.mantine-Menu-dropdown,
+.mantine-Card-root:focus,
+.mantine-Card-root:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}  */
+
+
+
+
+
+
+
+
+
+
+.notes-app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.notes-sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 0.5px solid #dee2e6;
+  padding: 12px;
+  box-sizing: border-box;
+  width: 270px;
+  min-width: 180px;
+  max-width: 400px;
+  background: linear-gradient(90deg, #000000 0%, #001100 100%) !important;
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.mantine-RichTextEditor-control:hover,
+.mantine-RichTextEditor-control:focus {
+  background-color: #004d00 !important;
+  color: white !important;
+}
+
+.mantine-RichTextEditor-control[data-active="true"] {
+  background-color: #006400 !important; /* dark green background */
+  color: black !important;
+  border-radius: 4px;
+}
+
+
+/* Active state styles for RichTextEditor toolbar */
+.mantine-RichTextEditor-control[data-active] {
+  background: rgba(142, 245, 138, 0.3) !important;
+  border: 1px solid #8ef58a !important;
+  color: #8ef58a !important;
+}
+
+.mantine-RichTextEditor-control:hover {
+  background: rgba(142, 245, 138, 0.2) !important;
+  color: #8ef58a !important;
+}
+
+/* Make the controls more visible */
+.mantine-RichTextEditor-control {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  transition: all 0.2s ease;
+}
+
+.mantine-RichTextEditor-controlsGroup {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Style the toolbar itself */
+.rich-text-editor-toolbar {
+  background: linear-gradient(90deg, #000000 0%, #001100 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding: 8px !important;
+}
+
+/* Style the content area */
+.mantine-RichTextEditor-content {
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.87) !important;
+  padding: 16px !important;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Style the editor root */
+.rich-text-editor {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Make headings and text more visible in dark mode */
+.mantine-RichTextEditor-content h1,
+.mantine-RichTextEditor-content h2,
+.mantine-RichTextEditor-content h3,
+.mantine-RichTextEditor-content h4,
+.mantine-RichTextEditor-content h5,
+.mantine-RichTextEditor-content h6 {
+  color: #8ef58a !important;
+}
+
+.mantine-RichTextEditor-content blockquote {
+  border-left: 4px solid #8ef58a !important;
+  background: rgba(142, 245, 138, 0.1) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.mantine-RichTextEditor-content code {
+  background: rgba(142, 245, 138, 0.2) !important;
+  color: #8ef58a !important;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+
+.search-input {
+  margin-bottom: 12px;
+  color : black;
+}
+
+.search-input input{
+  color: black !important;
+}
+
+.filter-group {
+  margin-bottom: 12px;
+  justify-content: space-between;
+}
+
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.note-item {
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.note-item:hover, .note-item.active {
+  background: rgba(255, 255, 255, 0.07);
+  color: #007bff;
+}
+
+.new-note-button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.editor-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+ padding: 16px 0 0 0;
+  /* overflow: hidden; */
+  min-width: 0;
+    min-height: 0; /* CRUCIAL for child flex scroll */
+
+  background: linear-gradient(90deg, #000000 0%, #001100 100%) !important;
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
+.editor-header {
+  justify-content: space-between;
+  padding: 0px 10px 0px 20px;
+  position: relative;
+  flex-wrap: wrap;
+}
+
+.rich-text-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0; /* take remaining space */
+  background: linear-gradient(90deg, #000000 0%, #001100 100%) !important;
+  color: rgba(255, 255, 255, 0.87) !important;
+  min-height: 0;
+  white-space: pre-wrap;   /* respect newlines + wrap long text */
+  word-break: break-word;  /* break overly long words/links */
+  overflow-wrap: break-word
+}
+
+.rich-text-editor-toolbar {
+  background: linear-gradient(90deg, #000000 0%, #001100 100%) !important;
+  color: rgba(255, 255, 255, 0.87) !important;
+  flex: 0 0 auto; /* toolbar only takes what it needs */
+
+  justify-content: center;
+}
+
+.rich-text-editor-controls-group {
+  background:linear-gradient(90deg, #000000 0%, #001100 100%) !important;
+  color: white !important;
+    border: none;
+}
+
+.rich-text-editor .mantine-RichTextEditor-content {
+  flex: 1 1 auto; /* content expands to fill remaining height */
+  overflow-y: auto; /* scroll only inside content */
+  background: linear-gradient(90deg, #000000 0%, #001100 100%) !important;
+  color: rgba(255, 255, 255, 0.87) !important;
+  height: 100%; /* full height of container, not viewport */
+  align-items: flex-start;
+    border: none;
+  justify-content: flex-start;
+}
+.mantine-RichTextEditor-control{
+  background: linear-gradient(90deg, #000000 0%, #001100 100%) !important;
+  color: rgba(255, 255, 255, 0.87) !important;
+    border: none;
+}
+.empty-state {
+  height: 100%;
+  display: flex;
+}
+
+.empty-state-text {
+  font-size: 1.1rem;
+  color: #868e96;
+}
+
+.badge {
+  margin-right: 3px;
+}
+
+/* Add to Notes.css */
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Sync status indicators */
+.note-item .mantine-Icon {
+  flex-shrink: 0;
+}
+
