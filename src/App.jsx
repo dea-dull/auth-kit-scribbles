@@ -7,7 +7,6 @@ import Login from './components/login/Login.jsx';
 import ResetPasswordPage from './components/login/ResetPassword.jsx';
 import SignUp from './components/signUp/SignUp.jsx';
 import VerificationResult from './components/verify/Verify.jsx';
-import Dashboard from './components/dashboard/Dashboard.jsx';
 import { Toaster } from "sonner";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import amplifyOutputs from './puts.json';
