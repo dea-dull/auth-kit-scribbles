@@ -22,3 +22,26 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+#non auth folders 
+api/
+contacts/
+dashboard/
+drive/
+layouts/
+logs/
+messages/
+settings/
+modules/
+notes/
+sidebar/
+time-bombs/
+assets/
+public/
+
+template2.yaml
+notes.txt
+amplify_outputs.js
+/components/template.yaml
+/components/package.json 

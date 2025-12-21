@@ -16,6 +16,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@heroicons/react": "^2.2.0",
+    "@heroui/modal": "^2.2.24",
     "@heroui/react": "^2.8.4",
     "@mantine/core": "^8.3.2",
     "@mantine/hooks": "^8.3.2",
