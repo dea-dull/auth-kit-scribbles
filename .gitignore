@@ -24,24 +24,42 @@ dist-ssr
 *.sw?
 
 
-#non auth folders 
-api/
-contacts/
-dashboard/
-drive/
-layouts/
-logs/
-messages/
-settings/
-modules/
-notes/
-sidebar/
-time-bombs/
-assets/
-public/
+#non auth files and folders 
+# api/
+# contacts/
+# dashboard/
+# drive/
+# layouts/
+# logs/
+# messages/
+# settings/
+# modules/
+# notes/
+# sidebar/
+# time-bombs/
+# assets/
+# public/
 
-template2.yaml
+# template2.yaml
+# notes.txt
+# amplify_outputs.js
+# /components/template.yaml
+# /components/package.json 
+
+
+#non-notes files and folders
+signUp/
+time-bombs/
+OTPModal/
+magic-backend/
+public/
+assets/
+verify/
 notes.txt
+ui/PasswordStrength.jsx
+ui/PasswordStrength.module.css
+template.yaml
 amplify_outputs.js
-/components/template.yaml
 /components/package.json 
+modules/
+login/

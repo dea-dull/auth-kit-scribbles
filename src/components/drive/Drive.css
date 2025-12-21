@@ -1,0 +1,174 @@
+/* === Remove Mantine's purple focus/hover borders and box-shadows globally for Drive === */
+/* 
+Remove focus ring and box-shadow from ActionIcon, Button, Input, Menu, etc.
+.mantine-ActionIcon-root,
+.mantine-Button-root,
+.mantine-Menu-target,
+.mantine-Input-input,
+.mantine-Select-input,
+.mantine-TextInput-input,
+.mantine-Textarea-input,
+.mantine-Checkbox-root,
+.mantine-Card-root,
+.mantine-Progress-root {
+  box-shadow: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+}
+
+Remove hover/focus border and background for clickable elements
+.mantine-ActionIcon-root:hover,
+.mantine-ActionIcon-root:focus,
+.mantine-Menu-target:focus,
+.mantine-Menu-target:hover,
+.mantine-Button-root:hover,
+.mantine-Button-root:focus {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: inherit !important;
+}
+
+Remove purple ring and background from focus-visible
+.mantine-ActionIcon-root:focus-visible,
+.mantine-Button-root:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+Remove focus ring from Menu dropdown and Card
+.mantine-Menu-dropdown,
+.mantine-Card-root:focus,
+.mantine-Card-root:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+} */
+
+
+
+
+
+
+.drive-sidebar {
+  background: linear-gradient(90deg, #000000 0%, #001100 100%) !important;
+  color: rgba(255,255,255,0.87) !important;
+  min-width: 190px;
+  height: 100vh;
+  padding: 14px 0;
+  box-shadow: 2px 0 8px 0 rgba(0,0,0,0.1);
+  z-index: 2;
+}
+.drive-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255,255,255,0.87);
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 16px;
+  border-radius: 6px;
+  padding: 7px 12px;
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+}
+.content {
+  flex: 1;
+  min-width: 0;
+  /* Remove any padding-left! */
+}
+.drive-nav-link.active, .drive-nav-link:active {
+  background: rgba(0, 255, 128, 0.12); /* subtle green glow */
+  color: #8ef58a;
+  font-weight: 700;
+}
+.drive-nav-link:hover {
+ background: rgba(255, 255, 255, 0.05) !important; /* faint white hover */
+  color: #8ef58a !important;
+}
+.layout {
+  display: flex;
+  flex-direction: row; /* This makes sidebar/content side by side */
+}
+.drive-content{
+    border: none;
+}
+.drive-main-panel {
+  flex: 1;
+  background: linear-gradient(90deg, #000 0%, #011 100%);
+  color: rgba(255,255,255,0.87);
+  padding: 34px 28px 18px 28px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.drive-main-topbar {
+  margin-bottom: 8px;
+}
+
+.drive-table {
+  background: transparent;
+  color: rgba(255,255,255,0.88);
+  border-radius: 11px;
+  overflow: hidden;
+}
+.drive-table thead tr {
+  background: rgba(16,32,16,0.85);
+  color: #8ef58a;
+}
+.drive-table tbody tr {
+  transition: background 0.14s;
+}
+.drive-table tbody tr:hover {
+  background: rgba(142,245,138,0.07) !important;
+}
+.selected-row {
+  background: rgba(142,245,138,0.09) !important;
+}
+
+.drive-table th, .drive-table td {
+  border-color: #222 !important;
+}
+.file-icon-folder {
+  color: #8ef58a !important;
+}
+.file-icon {
+  color: #6fffbb !important;
+}
+.context-menu-icon {
+  color: rgba(255,255,255,0.75);
+  border-radius: 6px;
+  transition: background 0.13s;
+}
+.context-menu-icon:hover {
+  background: #111c;
+  color: #8ef58a;
+}
+.drive-context-menu {
+  background: #181c1c !important;
+  color: #fff !important;
+  border-radius: 10px !important;
+  border: 1px solid #151a15 !important;
+  box-shadow: 0 4px 28px #000a;
+}
+.drive-context-menu .mantine-Menu-item {
+  color: #fff !important;
+  border-radius: 8px !important;
+  transition: background 0.14s, color 0.13s;
+}
+.drive-context-menu .mantine-Menu-item:hover {
+  background: rgba(142,245,138,0.13) !important;
+  color: #8ef58a !important;
+}
+
+.drive-storage-info {
+  border-top: 1px solid #232d23;
+  padding-top: 14px;
+  color: rgba(255,255,255,0.7);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18px;
+}

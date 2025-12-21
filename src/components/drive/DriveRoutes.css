@@ -1,0 +1,85 @@
+/* === Remove Mantine's purple focus/hover borders and box-shadows globally for Drive ===
+
+/* Remove focus ring and box-shadow from ActionIcon, Button, Input, Menu, etc. */
+
+
+
+.drive-home-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 0 0 0;
+}
+.drive-home-banner {
+  background: linear-gradient(90deg, #001100 0%, #001f13 100%);
+  color: #fff;
+  border: none;
+  margin-bottom: 22px;
+}
+.drive-home-heading {
+  color: #8ef58a;
+  letter-spacing: 0.5px;
+}
+.drive-home-stats {
+  margin-top: 34px;
+}
+.drive-home-stat-card {
+  background: rgba(16,32,16,0.9);
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 12px #0004;
+}
+.drive-home-stat-icon {
+  color: #8ef58a;
+}
+.drive-home-storage-progress {
+  margin-top: 36px;
+  background: rgba(16,32,16,0.84);
+  padding: 18px 24px;
+  border-radius: 12px;
+  color: #fff;
+  width: 100%;
+  max-width: 450px;
+}
+.drive-home-recent-section {
+  margin-top: 42px;
+}
+.drive-home-recent-table {
+  background: transparent;
+  color: #fff;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+.drive-home-recent-table thead tr {
+  background: rgba(16,32,16,0.78);
+  color: #8ef58a;
+}
+.drive-home-recent-table tbody tr:hover {
+  background: rgba(142,245,138,0.08) !important;
+}
+.custom-action-icon {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: #888 !important;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+.custom-action-icon:hover {
+  color: #8ef58a !important;
+}
+.drive-tagged-heading {
+  color: #8ef58a;
+  font-size: 2rem;
+  margin-bottom: 18px;
+}
+.drive-trash-heading {
+  color: #ff7676;
+  font-size: 2rem;
+  margin-bottom: 18px;
+}
+.drive-settings-heading {
+  color: #8ef58a;
+  font-size: 2rem;
+  margin-bottom: 18px;
+}
