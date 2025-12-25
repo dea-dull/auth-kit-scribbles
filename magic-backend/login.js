@@ -4,10 +4,10 @@ import crypto from 'crypto';
 
 
 const CORS_HEADERS = {
-  // "Access-Control-Allow-Origin": "*", // temporarily allow all origins
-  "Access-Control-Allow-Origin": process.env.FRONTEND_URL, // enable later
-  "Access-Control-Allow-Headers": "Content-Type,Authorization",
-  "Access-Control-Allow-Methods": "OPTIONS,POST"
+  'Access-Control-Allow-Origin': [process.env.FRONTEND_URL],
+  'Access-Control-Allow-Headers': ['Content-Type', 'Authorization'],
+  'Access-Control-Allow-Methods': ['OPTIONS', 'POST'],
+  'Access-Control-Allow-Credentials': ['true'],
 };
 
 const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
@@ -18,11 +18,11 @@ const csrfToken = generateCsrfToken();
 
 export const handler = async (event) => {
   try {
-    
+
      if (event.httpMethod === 'OPTIONS') {
   return {
     statusCode: 204,
-    headers: CORS_HEADERS,
+    multiValueHeaders: CORS_HEADERS,
     body: ''
   };
 }
@@ -31,7 +31,7 @@ export const handler = async (event) => {
     // Authenticate with Cognito
     const command = new InitiateAuthCommand({
       AuthFlow: 'USER_PASSWORD_AUTH',
-      ClientId: process.env.COGNITO_CLIENT_ID,
+      ClientId: process.env.CLIENT_ID,
       AuthParameters: {
         USERNAME: email,
         PASSWORD: password

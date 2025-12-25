@@ -5,21 +5,21 @@ import { parseCookies } from './jwtAuthorizer.js';
 const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
 const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": process.env.FRONTEND_URL,
-  "Access-Control-Allow-Credentials": "true",
-  "Access-Control-Allow-Headers": "Content-Type,X-CSRF-Token",
-  "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
+  'Access-Control-Allow-Origin': [process.env.FRONTEND_URL],
+  'Access-Control-Allow-Headers': ['Content-Type', 'Authorization'],
+  'Access-Control-Allow-Methods': ['OPTIONS', 'POST'],
+  'Access-Control-Allow-Credentials': ['true'],
 };
  
 
 
 export const handler = async (event) => {
   try {
-    
+
     if (event.httpMethod === 'OPTIONS') {
   return {
     statusCode: 204,
-    headers: CORS_HEADERS,
+    multiValueHeaders: CORS_HEADERS,
     body: ''
   };
 }
@@ -41,7 +41,7 @@ export const handler = async (event) => {
     // Use Cognito to refresh tokens
     const command = new InitiateAuthCommand({
       AuthFlow: 'REFRESH_TOKEN_AUTH',
-      ClientId: process.env.COGNITO_CLIENT_ID,
+      ClientId: process.env.CLIENT_ID,
       AuthParameters: { REFRESH_TOKEN: refreshToken },
     });
 
