@@ -1,10 +1,26 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 10
+    Environment:
+      Variables:
+        FRONTEND_URL: !Ref FrontendUrl
+        API_URL: !Ref ApiUrl
+
 Parameters:
   Environment:
     Type: String
     Default: dev
+
+  FrontendUrl:
+    Type: String
+
+  ApiUrl:
+    Type: String
+
 
 Resources:
 
@@ -13,10 +29,12 @@ Resources:
     Properties:
       StageName: !Ref Environment
       Name: !Sub "starage-backend-${Environment}"
-      Cors:
-        AllowMethods: "'*'"
-        AllowHeaders: "'*'"
-        AllowOrigin: "'*'"
+      # Cors:
+      #   AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+      #   AllowHeaders: "'Content-Type,X-CSRF-Token'"
+      #   AllowOrigin: !Sub "'${FrontendUrl}'"
+      #   AllowCredentials: true
+
 
   ###########################################################################
   # LAYERS

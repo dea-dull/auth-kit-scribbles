@@ -4,8 +4,26 @@ import { parseCookies } from './jwtAuthorizer.js';
 
 const client = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": process.env.FRONTEND_URL,
+  "Access-Control-Allow-Credentials": "true",
+  "Access-Control-Allow-Headers": "Content-Type,X-CSRF-Token",
+  "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
+};
+ 
+
+
 export const handler = async (event) => {
   try {
+    
+    if (event.httpMethod === 'OPTIONS') {
+  return {
+    statusCode: 204,
+    headers: CORS_HEADERS,
+    body: ''
+  };
+}
+
     const cookies = parseCookies(event.headers?.Cookie || event.headers?.cookie);
     const refreshToken = cookies.refreshToken;
 

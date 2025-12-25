@@ -8,10 +8,25 @@ const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client); // Add DocumentClient
 
 const headers = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Origin": process.env.FRONTEND_URL,
+  "Access-Control-Allow-Credentials": "true",
+  "Access-Control-Allow-Headers": "Content-Type,X-CSRF-Token",
+  "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
 };
+
+
+
+export const validateCsrf = (event) => {
+  const cookies = parseCookies(event.headers.cookie);
+  const csrfCookie = cookies.csrfToken;
+  const csrfHeader = event.headers['x-csrf-token'];
+
+  if (!csrfCookie || csrfCookie !== csrfHeader) {
+    throw new Error('CSRF validation failed');
+  }
+};
+
+
 
 exports.handler = async (event) => {
   try {
@@ -19,6 +34,8 @@ exports.handler = async (event) => {
     if (event.httpMethod === "OPTIONS") {
       return { statusCode: 200, headers, body: "" };
     }
+
+    validateCsrf(event);
 
     if (event.httpMethod !== "POST") {
       return {
