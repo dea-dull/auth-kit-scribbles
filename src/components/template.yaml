@@ -24,16 +24,16 @@ Parameters:
 
 Resources:
 
-  StarageApiGateway:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: !Ref Environment
-      Name: !Sub "starage-backend-${Environment}"
-      # Cors:
-      #   AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
-      #   AllowHeaders: "'Content-Type,X-CSRF-Token'"
-      #   AllowOrigin: !Sub "'${FrontendUrl}'"
-      #   AllowCredentials: true
+  # StarageApiGateway:
+  #   Type: AWS::Serverless::Api
+  #   Properties:
+  #     StageName: !Ref Environment
+  #     Name: !Sub "starage-backend-${Environment}"
+  #     # Cors:
+  #     #   AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+  #     #   AllowHeaders: "'Content-Type,X-CSRF-Token'"
+  #     #   AllowOrigin: !Sub "'${FrontendUrl}'"
+  #     #   AllowCredentials: true
 
 
   ###########################################################################
@@ -55,47 +55,47 @@ Resources:
   # DYNAMODB TABLES
   ###########################################################################
 
-  UserSettingsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub user-settings-${Environment}
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: user_id
-          AttributeType: S
-        - AttributeName: plan_type
-          AttributeType: S
-        - AttributeName: quota_reset_at
-          AttributeType: 'N'
-      KeySchema:
-        - AttributeName: user_id
-          KeyType: HASH
-      TimeToLiveSpecification:
-        AttributeName: quota_reset_at
-        Enabled: true
-      GlobalSecondaryIndexes:
-        - IndexName: PlanTypeIndex
-          KeySchema:
-            - AttributeName: plan_type
-              KeyType: HASH
-          Projection:
-            ProjectionType: ALL
-        - IndexName: QuotaResetIndex
-          KeySchema:
-            - AttributeName: quota_reset_at
-              KeyType: HASH
-          Projection:
-            ProjectionType: KEYS_ONLY
-      Tags:
-        - Key: Project
-          Value: Starage
-        - Key: Purpose
-          Value: UserSettings
+  # UserSettingsTable:
+  #   Type: AWS::DynamoDB::Table
+  #   Properties:
+  #     TableName: !Sub user-settings-${Environment}
+  #     BillingMode: PAY_PER_REQUEST
+  #     AttributeDefinitions:
+  #       - AttributeName: user_id
+  #         AttributeType: S
+  #       - AttributeName: plan_type
+  #         AttributeType: S
+  #       - AttributeName: quota_reset_at
+  #         AttributeType: 'N'
+  #     KeySchema:
+  #       - AttributeName: user_id
+  #         KeyType: HASH
+  #     TimeToLiveSpecification:
+  #       AttributeName: quota_reset_at
+  #       Enabled: true
+  #     GlobalSecondaryIndexes:
+  #       - IndexName: PlanTypeIndex
+  #         KeySchema:
+  #           - AttributeName: plan_type
+  #             KeyType: HASH
+  #         Projection:
+  #           ProjectionType: ALL
+  #       - IndexName: QuotaResetIndex
+  #         KeySchema:
+  #           - AttributeName: quota_reset_at
+  #             KeyType: HASH
+  #         Projection:
+  #           ProjectionType: KEYS_ONLY
+  #     Tags:
+  #       - Key: Project
+  #         Value: Starage
+  #       - Key: Purpose
+  #         Value: UserSettings
 
   NotesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub Starage-App-Notes-${Environment}
+      TableName: !Sub Starage-notes-${Environment}
       AttributeDefinitions:
         - AttributeName: userId
           AttributeType: S
@@ -230,11 +230,11 @@ Resources:
 Outputs:
 
  
-  UserSettingsTableName:
-    Description: DynamoDB table for user settings
-    Value: !Ref UserSettingsTable
-    Export:
-      Name: !Sub user-settings-table-name-${Environment}
+  # UserSettingsTableName:
+  #   Description: DynamoDB table for user settings
+  #   Value: !Ref UserSettingsTable
+  #   Export:
+  #     Name: !Sub user-settings-table-name-${Environment}
 
  
   NotesTableName:
@@ -247,4 +247,4 @@ Outputs:
     Description: ARN of the AWS SDK v3 Layer
     Value: !Ref AwsSdkV3Layer
     Export:
-      Name: !Sub aws-sdk-v3-layer-${Environment}
+      Name: !Sub ${AWS::StackName}-aws-sdk-v3-layer
