@@ -1,0 +1,28 @@
+Multi-tab considerations
+
+Right now, if a user has multiple tabs open:
+
+Each tab calling a protected API at the same time might trigger multiple /refresh calls simultaneously.
+
+This is usually harmless, but it can be optimized:
+
+How production apps handle it
+
+Use localStorage or BroadcastChannel to coordinate refresh across tabs.
+
+Only one tab does the refresh; others wait for the result.
+
+Example:
+
+// pseudo-code
+if (refreshInProgress) {
+  wait for refresh to complete;
+} else {
+  set refreshInProgress = true;
+  call /refresh;
+  set refreshInProgress = false;
+  notify other tabs of new token expiry;
+}
+
+
+This reduces unnecessary refresh calls and avoids race conditions.

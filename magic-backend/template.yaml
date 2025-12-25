@@ -235,6 +235,62 @@ Resources:
                 - cognito-idp:AdminSetUserPassword
               Resource: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}
 
+  LoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: login.handler
+      Events:
+        LoginApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /login
+            Method: post
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:InitiateAuth
+              Resource: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}
+
+  RefreshFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: refresh-token.handler
+      Events:
+        RefreshApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /refresh
+            Method: post
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:InitiateAuth
+              Resource: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPoolId}
+
+  # Logout Lambda
+  LogoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: logout.handler
+      Timeout: 10
+      Events:
+        LogoutApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /logout
+            Method: post
+      Policies:
+        - AWSLambdaBasicExecutionRole
+
+
   # REST API
   ServerlessRestApi:
     Type: AWS::Serverless::Api

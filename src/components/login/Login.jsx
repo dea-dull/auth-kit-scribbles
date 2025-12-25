@@ -6,9 +6,8 @@ import WhiteButton from '../ui/WhiteButton.jsx';
 import styles from './Login.module.css';
 import { notify } from '../ui/Notify.jsx';
 import { useNavigate } from 'react-router-dom';
-import { signIn } from 'aws-amplify/auth'
 import SingleInputModal from '../ui/SingleInputModal.jsx';
-
+// import { AuthContext } from '../../context/AuthContext.jsx';
 
 const Login = () => {
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -26,14 +25,36 @@ const Login = () => {
 
 
   const handleLogin = async () => {
+
+      if (!isValidEmail(email)) {
+    notify.error("Please enter a valid email address.");
+    return;
+  }
+
+  if (!password) {
+    notify.error("Please enter your password.");
+    return;
+  }
+
+    const API_URL = import.meta.env.VITE_API_URL || "https://your-api-url.com";
   try {
     
-    await signIn({ 
-      username: email,  
-      password 
+
+    const response = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+      credentials: "include" // important if backend uses HttpOnly cookies
     });
+
+    const data = await response.json();
     
-    // If we get here, login was successful!
+      if (!response.ok) {
+        notify.error(data.message || "Login failed. Please try again later.");
+        return;
+      }
+
+    
     notify.success("Successfully logged in!");
     navigate('/notes');
     
@@ -180,3 +201,30 @@ const Login = () => {
 };
 
 export default Login;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

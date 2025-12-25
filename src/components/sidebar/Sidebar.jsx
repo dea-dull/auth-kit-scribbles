@@ -15,6 +15,13 @@ import {
 } from "@heroicons/react/24/outline";
 
 import "./Sidebar.css";
+import { notify } from "../ui/Notify";
+
+
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  'https://your-api-id.execute-api.region.amazonaws.com/dev';
+
 
 const menuLinks = [
   { key: "notes", label: "Notes", icon: DocumentTextIcon, to: "/notes" },
@@ -86,6 +93,24 @@ const Sidebar = () => {
     if (!isOpen) setIsOpen(true);
   };
 
+
+  const handleLogout = async () => {
+  try {
+    await fetch(`${API_URL}/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    // Optional: clear local auth state
+    localStorage.removeItem("user");
+
+     notify.success("Logged out successfully.");
+    navigate("/login");
+  } catch (error) {
+    console.error("Logout failed:", error);
+  }
+};
+
   // Dropdown actions for user menu
   const handleUserAction = (actionKey) => {
     switch (actionKey) {
@@ -97,6 +122,9 @@ const Sidebar = () => {
         break;
       case "logout":
         // Perform logout logic here
+
+        handleLogout();
+
         break;
       default:
         break;
