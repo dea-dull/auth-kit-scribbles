@@ -33,6 +33,18 @@ async function refreshToken() {
   return refreshPromise;
 }
 
+  /**
+   * Get a cookie by its name
+   * @param {string} name - The name of the cookie to retrieve
+   * @returns {string|null} The cookie value, or null if not found
+   */
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  }
+
 /**
  * Fetch wrapper with:
  * - HttpOnly cookies
