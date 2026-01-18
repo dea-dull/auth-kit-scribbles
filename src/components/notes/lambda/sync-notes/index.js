@@ -7,13 +7,13 @@ const { DynamoDBDocumentClient,  PutCommand } = require("@aws-sdk/lib-dynamodb")
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client); // Add DocumentClient
 
-const headers = {
-  "Access-Control-Allow-Origin": process.env.FRONTEND_URL,
-  "Access-Control-Allow-Credentials": "true",
-  "Access-Control-Allow-Headers": "Content-Type,X-CSRF-Token",
-  "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
-};
 
+const CORS_HEADERS = {
+   'Access-Control-Allow-Origin': [process.env.FRONTEND_URL],
+  'Access-Control-Allow-Headers': ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  'Access-Control-Allow-Methods': ['OPTIONS', 'POST'],
+  'Access-Control-Allow-Credentials': ['true'],
+};
 
 
 export const validateCsrf = (event) => {
@@ -32,7 +32,7 @@ exports.handler = async (event) => {
   try {
     // Handle preflight
     if (event.httpMethod === "OPTIONS") {
-      return { statusCode: 200, headers, body: "" };
+      return { statusCode: 200, multiValueHeaders: CORS_HEADERS, body: "" };
     }
 
     validateCsrf(event);
@@ -40,7 +40,7 @@ exports.handler = async (event) => {
     if (event.httpMethod !== "POST") {
       return {
         statusCode: 405,
-        headers,
+        multiValueHeaders: CORS_HEADERS,
         body: JSON.stringify({ error: "Method not allowed" }),
       };
     }
@@ -50,7 +50,7 @@ exports.handler = async (event) => {
     if (!note.id || !note.title) {
       return {
         statusCode: 400,
-        headers,
+        multiValueHeaders: CORS_HEADERS,
         body: JSON.stringify({
           error: "Missing required fields: id and title",
         }),
@@ -81,7 +81,7 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers,
+      multiValueHeaders: CORS_HEADERS,
       body: JSON.stringify({
         success: true,
         syncedAt: new Date().toISOString(),
@@ -91,7 +91,7 @@ exports.handler = async (event) => {
     console.error("Sync error:", error);
     return {
       statusCode: 500,
-      headers,
+      multiValueHeaders: CORS_HEADERS,
       body: JSON.stringify({ error: "Internal server error" }),
     };
   }

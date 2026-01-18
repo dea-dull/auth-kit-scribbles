@@ -5,11 +5,11 @@ const { DynamoDBDocumentClient, QueryCommand } = require("@aws-sdk/lib-dynamodb"
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
 
-const headers = {
-   "Access-Control-Allow-Origin": process.env.FRONTEND_URL,
-  "Access-Control-Allow-Credentials": "true",
-  "Access-Control-Allow-Headers": "Content-Type,X-CSRF-Token",
-  "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
+const CORS_HEADERS = {
+   'Access-Control-Allow-Origin': [process.env.FRONTEND_URL],
+  'Access-Control-Allow-Headers': ['Content-Type', 'Authorization'],
+  'Access-Control-Allow-Methods': ['OPTIONS', 'GET'],
+  'Access-Control-Allow-Credentials': ['true'],
 };
 
 export const validateCsrf = (event) => {
@@ -28,7 +28,7 @@ exports.handler = async (event) => {
   try {
     // Handle preflight
     if (event.httpMethod === 'OPTIONS') {
-      return { statusCode: 200, headers, body: '' };
+      return { statusCode: 204, multiValueHeaders: CORS_HEADERS, body: '' };
     }
 
     validateCsrf(event);
@@ -36,7 +36,7 @@ exports.handler = async (event) => {
     if (event.httpMethod !== 'GET') {
       return { 
         statusCode: 405, 
-        headers, 
+        multiValueHeaders: CORS_HEADERS,
         body: JSON.stringify({ error: 'Method not allowed' }) 
       };
     }
@@ -80,15 +80,19 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers,
+      multiValueHeaders: CORS_HEADERS,
       body: JSON.stringify(result.Items)
     };
   } catch (error) {
     console.error('Get notes error:', error);
     return {
       statusCode: 500,
-      headers,
+      multiValueHeaders: CORS_HEADERS,
       body: JSON.stringify({ error: 'Internal server error' })
     };
   };
 };
+
+
+
+// note the cause mightbe changing the headers to multivalue headers thingy 

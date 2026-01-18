@@ -4,13 +4,13 @@ const { DynamoDBDocumentClient, UpdateCommand } = require("@aws-sdk/lib-dynamodb
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
 
-const headers = {
-  "Access-Control-Allow-Origin": process.env.FRONTEND_URL,
-  "Access-Control-Allow-Credentials": "true",
-  "Access-Control-Allow-Headers": "Content-Type,X-CSRF-Token",
-  "Access-Control-Allow-Methods": "OPTIONS,GET,POST,PUT,DELETE"
-};
 
+const CORS_HEADERS = {
+   'Access-Control-Allow-Origin': [process.env.FRONTEND_URL],
+  'Access-Control-Allow-Headers': ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  'Access-Control-Allow-Methods': ['OPTIONS', 'POST', 'DELETE'],
+  'Access-Control-Allow-Credentials': ['true'],
+};
 
 export const validateCsrf = (event) => {
   const cookies = parseCookies(event.headers.cookie);
@@ -29,14 +29,14 @@ exports.handler = async (event) => {
     
     // Handle preflight
     if (event.httpMethod === 'OPTIONS') {
-      return { statusCode: 200, headers, body: '' };
+      return { statusCode: 200, multiValueHeaders: CORS_HEADERS, body: '' };
     }
 
     validateCsrf(event);
     if (event.httpMethod !== 'DELETE') {
       return { 
         statusCode: 405, 
-        headers, 
+        multiValueHeaders: CORS_HEADERS, 
         body: JSON.stringify({ error: 'Method not allowed' }) 
       };
     }
@@ -45,7 +45,7 @@ exports.handler = async (event) => {
     if (!noteId) {
       return {
         statusCode: 400,
-        headers,
+        multiValueHeaders: CORS_HEADERS,
         body: JSON.stringify({ error: 'Note ID is required' })
       };
     }
@@ -73,7 +73,7 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers,
+      multiValueHeaders: CORS_HEADERS,
       body: JSON.stringify({
         success: true,
         message: 'Note marked for deletion. It will be permanently deleted in 7 days.',
@@ -85,7 +85,7 @@ exports.handler = async (event) => {
     if (error.name === 'ConditionalCheckFailedException') {
       return {
         statusCode: 404,
-        headers,
+        multiValueHeaders: CORS_HEADERS,
         body: JSON.stringify({ error: 'Note not found' })
       };
     }
@@ -93,7 +93,7 @@ exports.handler = async (event) => {
     console.error('Delete note error:', error);
     return {
       statusCode: 500,
-      headers,
+      multiValueHeaders: CORS_HEADERS,
       body: JSON.stringify({ error: 'Internal server error' })
     };
   }
