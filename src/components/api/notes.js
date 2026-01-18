@@ -49,7 +49,10 @@ export const notesAPI = {
     const url = `/notes${query ? `?${query}` : ''}`;
 
     try {
-      const data = await fetchWithAuth(url);
+      const headers = { 'Content-Type': 'application/json' };
+      if (filters.csrfToken) headers['x-csrf-token'] = filters.csrfToken;
+    
+      const data = await fetchWithAuth(url,  { method: 'GET', headers });
       return data;
     } catch (err) {
       if (err.message.includes('404')) {
