@@ -16,7 +16,16 @@ const CORS_HEADERS = {
 };
 
 
-export const validateCsrf = (event) => {
+const parseCookies = (cookieHeader) => {
+  if (!cookieHeader) return {};
+  return cookieHeader.split(';').reduce((cookies, cookie) => {
+    const [name, ...valParts] = cookie.trim().split('=');
+    cookies[name] = decodeURIComponent(valParts.join('='));
+    return cookies;
+  }, {});
+};
+
+const validateCsrf = (event) => {
   const cookies = parseCookies(event.headers.cookie);
   const csrfCookie = cookies.csrfToken;
   const csrfHeader = event.headers['x-csrf-token'];

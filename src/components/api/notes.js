@@ -1,4 +1,4 @@
-// src/api/notes.js
+// src/apisamesite.js
 import { fetchWithAuth } from './fetchWithAuth';
 import { notify } from '../ui/Notify.jsx'; // optional: for user feedback
 
